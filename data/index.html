@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light" data-fontsize="m">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b3d63" />
+  <title>UlcerShield AI</title>
+  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="icon" href="logo.jpeg" />
+</head>
+<body>
+  <!-- toast host -->
+  <div class="toasts" id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- offline banner -->
+  <div class="offline-banner" id="offlineBanner" hidden>
+    <span class="dot"></span>
+    <span data-i18n="sensor_offline">Sensor offline</span>
+    <span class="offline-banner__age" id="offlineAge"></span>
+    <button class="offline-banner__retry" id="offlineRetry" type="button">Retry</button>
+  </div>
+
+  <!-- header -->
+  <header class="app-header" id="appHeader">
+    <a class="brand" href="#/dashboard">
+      <img class="brand__logo" src="logo.jpeg" alt="UlcerShield AI" />
+      <div>
+        <div class="brand__title">UlcerShield <span>AI</span></div>
+        <div class="brand__subtitle" data-i18n="brand_subtitle">Bedsore Prevention Platform</div>
+      </div>
+    </a>
+
+    <nav class="nav" id="mainNav" hidden>
+      <a href="#/dashboard" data-route="/dashboard" data-i18n="nav_dashboard">Dashboard</a>
+      <a href="#/analysis"  data-route="/analysis"  data-i18n="nav_analysis">Analysis</a>
+      <a href="#/profile"   data-route="/profile"   data-i18n="nav_profile">Profile</a>
+    </nav>
+
+    <div class="header-controls">
+      <div class="conn" id="conn" data-state="connecting">
+        <span class="conn__dot"></span>
+        <span class="conn__text" id="connText">Connecting…</span>
+        <span class="conn__count" id="connCount"></span>
+      </div>
+
+      <button class="btn-icon" id="themeBtn" title="Theme">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="currentColor" d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/>
+        </svg>
+      </button>
+
+      <button class="btn-icon" id="fontBtn" title="Font size">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M9 4 3 20h2.2l1.6-4.6h6.4L14.8 20H17L11 4Zm-1.5 9.4 2.5-7 2.5 7Z"/></svg>
+        <span id="fontLabel">M</span>
+      </button>
+
+      <button class="btn-icon" id="langBtn" title="Language">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm7.9 9h-3.4a15.4 15.4 0 0 0-1-4.8A8 8 0 0 1 19.9 11ZM12 4a13 13 0 0 1 1.6 7h-3.2A13 13 0 0 1 12 4Zm-3.5.2A15.4 15.4 0 0 0 7.5 9H4.1a8 8 0 0 1 4.4-4.8ZM4.1 13h3.4a15.4 15.4 0 0 0 1 4.8A8 8 0 0 1 4.1 13Zm4.4-2h3.2a13 13 0 0 1-1.6 7 13 13 0 0 1-1.6-7Zm3.5 9.8a15.4 15.4 0 0 0 1-4.8h3.4a8 8 0 0 1-4.4 4.8Zm4.4-6.8h-3.4a15.4 15.4 0 0 0-1-4.8 8 8 0 0 1 4.4 4.8Z"/></svg>
+        <span id="langLabel">عربي</span>
+      </button>
+
+      <div class="user-chip" id="userChip" hidden>
+        <img id="userChipAvatar" src="" alt="" />
+        <span id="userChipName"></span>
+        <button class="link-btn" id="logoutBtn" data-i18n="logout">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SPA outlet -->
+  <main id="view" class="view"></main>
+
+  <!-- ================= view templates ================= -->
+
+  <template id="tpl-login">
+    <section class="auth">
+      <div class="auth__panel">
+        <img class="auth__logo" src="logo.jpeg" alt="" />
+        <h1 data-i18n="login_title">Sign in to UlcerShield AI</h1>
+        <p class="auth__lede" data-i18n="login_lede">Bedside monitoring and bedsore risk prediction.</p>
+        <form class="form" id="loginForm">
+          <label>
+            <span data-i18n="username">Username</span>
+            <input name="username" required autocomplete="username" />
+          </label>
+          <label>
+            <span data-i18n="password">Password</span>
+            <input name="password" type="password" required autocomplete="current-password" />
+          </label>
+          <button class="btn btn--primary" type="submit" data-i18n="btn_signin">Sign in</button>
+        </form>
+        <div class="auth__alt">
+          <span data-i18n="no_account">No account?</span>
+          <a href="#/register" data-i18n="register_here">Register here</a>
+        </div>
+      </div>
+      <aside class="auth__hero">
+        <div class="auth__hero-inner">
+          <h2 data-i18n="hero_title">Prevent pressure injuries before they happen.</h2>
+          <p data-i18n="hero_body">Continuous FSR pressure sensing, temperature and humidity monitoring, automatic turn detection, and AI-driven positioning recommendations.</p>
+          <ul>
+            <li data-i18n="hero_b1">Real-time zone pressure in N · mmHg · g</li>
+            <li data-i18n="hero_b2">2-hour repositioning timer with alerts</li>
+            <li data-i18n="hero_b3">Per-patient history, export to CSV / PDF</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+  </template>
+
+  <template id="tpl-register">
+    <section class="auth">
+      <div class="auth__panel">
+        <img class="auth__logo" src="logo.jpeg" alt="" />
+        <h1 data-i18n="register_title">Create your profile</h1>
+        <p class="auth__lede" data-i18n="register_lede">Add personal info, health metrics, and a photo.</p>
+        <form class="form form--grid" id="registerForm">
+          <label class="form__avatar">
+            <span data-i18n="photo">Photo</span>
+            <div class="avatar-upload">
+              <img id="avatarPreview" src="" alt="" />
+              <input type="file" id="avatarInput" accept="image/*" />
+              <em data-i18n="tap_to_upload">Tap to upload</em>
+            </div>
+          </label>
+          <label><span data-i18n="username">Username</span><input name="username" required /></label>
+          <label><span data-i18n="password">Password</span><input name="password" type="password" required minlength="4" /></label>
+          <label><span data-i18n="full_name">Full name</span><input name="name" required /></label>
+          <label><span data-i18n="email">Email</span><input name="email" type="email" /></label>
+          <label><span data-i18n="phone">Phone</span><input name="phone" type="tel" /></label>
+          <label><span data-i18n="age">Age</span><input name="age" type="number" min="0" max="130" /></label>
+          <label>
+            <span data-i18n="sex">Sex</span>
+            <select name="sex">
+              <option value="" data-i18n="select">Select…</option>
+              <option value="male" data-i18n="male">Male</option>
+              <option value="female" data-i18n="female">Female</option>
+              <option value="other" data-i18n="other">Other</option>
+            </select>
+          </label>
+          <label><span data-i18n="height_cm">Height (cm)</span><input name="height" type="number" min="0" max="260" /></label>
+          <label><span data-i18n="weight_kg">Weight (kg)</span><input name="weight" type="number" min="0" max="500" step="0.1" /></label>
+          <label class="form__full"><span data-i18n="notes">Clinical notes (optional)</span><textarea name="notes" rows="3"></textarea></label>
+          <div class="form__actions form__full">
+            <a href="#/login" class="btn btn--ghost" data-i18n="cancel">Cancel</a>
+            <button class="btn btn--primary" type="submit" data-i18n="btn_create">Create account</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-dashboard">
+    <section class="dashboard">
+
+      <section class="card patient-card" aria-labelledby="patient-h">
+        <div class="patient">
+          <img class="avatar-img" id="patientAvatar" src="" alt="" />
+          <div class="patient__info">
+            <h1 id="patient-h" class="patient__name">—</h1>
+            <div class="patient__meta">
+              <span><span data-i18n="patient_id">ID</span>: <b id="patientId">—</b></span>
+              <span><span data-i18n="age">Age</span>: <b id="patientAge">—</b></span>
+              <span><span data-i18n="sex">Sex</span>: <b id="patientSex">—</b></span>
+              <span><span data-i18n="height_cm_short">Ht</span>: <b id="patientHt">—</b> cm</span>
+              <span><span data-i18n="weight_kg_short">Wt</span>: <b id="patientWt">—</b> kg</span>
+            </div>
+          </div>
+          <div class="patient__risk" id="patientRisk" data-level="low">
+            <span class="patient__risk-dot"></span>
+            <span data-i18n="status">Status</span>:
+            <b id="patientRiskLabel">LOW</b>
+          </div>
+        </div>
+      </section>
+
+      <section class="card pressure-card" aria-labelledby="pressure-h">
+        <header class="card__head">
+          <h2 id="pressure-h" data-i18n="pressure_title">Pressure Zones</h2>
+          <span class="pill pill--live"><span class="pulse"></span><span data-i18n="live">Live</span></span>
+        </header>
+
+        <div class="zones">
+          <article class="zone" data-zone="left" id="zoneLeft">
+            <div class="zone__head">
+              <span class="zone__tag">L</span>
+              <div>
+                <div class="zone__title" data-i18n="zone_left">Left side</div>
+                <div class="zone__sub" data-i18n="fsr_a">FSR A · GPIO34</div>
+              </div>
+              <span class="zone__badge" id="leftBadge" data-status="idle" data-i18n="no_load">NO LOAD</span>
+            </div>
+            <div class="metrics">
+              <div class="metric"><div class="metric__value" id="leftN">0.00</div><div class="metric__unit">N</div></div>
+              <div class="metric metric--primary"><div class="metric__value" id="leftMmhg">0.0</div><div class="metric__unit">mmHg</div></div>
+              <div class="metric"><div class="metric__value" id="leftG">0.0</div><div class="metric__unit">g</div></div>
+            </div>
+            <div class="gauge">
+              <div class="gauge__scale"><span style="left: 21%">32</span><span style="left: 40%">60</span><span style="left: 66%">100</span></div>
+              <div class="gauge__track">
+                <div class="gauge__fill" id="leftFill"></div>
+                <div class="gauge__tick" style="left:21%"></div>
+                <div class="gauge__tick gauge__tick--red" style="left:66%"></div>
+              </div>
+              <div class="gauge__peak" id="leftPeak">peak 0.0</div>
+            </div>
+          </article>
+
+          <article class="zone" data-zone="right" id="zoneRight">
+            <div class="zone__head">
+              <span class="zone__tag zone__tag--right">R</span>
+              <div>
+                <div class="zone__title" data-i18n="zone_right">Right side</div>
+                <div class="zone__sub" data-i18n="fsr_b">FSR B · GPIO35</div>
+              </div>
+              <span class="zone__badge" id="rightBadge" data-status="idle" data-i18n="no_load">NO LOAD</span>
+            </div>
+            <div class="metrics">
+              <div class="metric"><div class="metric__value" id="rightN">0.00</div><div class="metric__unit">N</div></div>
+              <div class="metric metric--primary"><div class="metric__value" id="rightMmhg">0.0</div><div class="metric__unit">mmHg</div></div>
+              <div class="metric"><div class="metric__value" id="rightG">0.0</div><div class="metric__unit">g</div></div>
+            </div>
+            <div class="gauge">
+              <div class="gauge__scale"><span style="left: 21%">32</span><span style="left: 40%">60</span><span style="left: 66%">100</span></div>
+              <div class="gauge__track">
+                <div class="gauge__fill" id="rightFill"></div>
+                <div class="gauge__tick" style="left:21%"></div>
+                <div class="gauge__tick gauge__tick--red" style="left:66%"></div>
+              </div>
+              <div class="gauge__peak" id="rightPeak">peak 0.0</div>
+            </div>
+          </article>
+        </div>
+
+        <!-- BODY PRESSURE MAP (silhouette) -->
+        <div class="bodymap">
+          <header class="bodymap__head">
+            <h3 data-i18n="bodymap_title">Body Pressure Map</h3>
+            <span class="pill pill--muted" data-i18n="supine_view">Supine view</span>
+          </header>
+          <div class="bodymap__wrap">
+            <svg viewBox="0 0 260 500" class="bodymap__svg" aria-labelledby="bmap-h" id="bodymapSvg">
+              <title id="bmap-h">Body pressure map</title>
+              <!-- mattress -->
+              <rect x="10" y="20" width="240" height="460" rx="18" ry="18" class="bmap-mattress" />
+              <!-- body silhouette (supine, head at top) -->
+              <g class="bmap-body">
+                <circle cx="130" cy="60" r="26" />
+                <rect x="120" y="82" width="20" height="14" rx="4" />
+                <path d="M92 100 Q90 110 96 128 L96 220 Q96 236 110 240 L150 240 Q164 236 164 220 L164 128 Q170 110 168 100 Z"/>
+                <path d="M92 118 Q70 130 68 200 L74 260 Q76 268 82 268 L86 268 Q92 264 94 254 L96 200 Z"/>
+                <path d="M168 118 Q190 130 192 200 L186 260 Q184 268 178 268 L174 268 Q168 264 166 254 L164 200 Z"/>
+                <path d="M96 240 Q90 250 96 280 L164 280 Q170 250 164 240 Z"/>
+                <path d="M100 280 Q98 310 110 360 L124 360 Q130 320 128 280 Z"/>
+                <path d="M132 280 Q130 320 136 360 L150 360 Q162 310 160 280 Z"/>
+                <path d="M110 360 Q108 400 116 450 L124 450 Q126 400 124 360 Z"/>
+                <path d="M136 360 Q134 400 144 450 L152 450 Q154 400 150 360 Z"/>
+              </g>
+
+              <!-- midline anatomical reference (grayed) -->
+              <g class="bmap-refdot"><circle cx="130" cy="55"  r="6"/><title>Occiput</title></g>
+              <g class="bmap-refdot"><circle cx="130" cy="248" r="6"/><title>Sacrum midline</title></g>
+
+              <!-- 8 pressure spots (4 left + 4 right).
+                   Each has data-weight = fraction of side's FSR pressure it displays. -->
+              <g class="pspot" data-side="left"  data-region="shoulder" data-weight="0.55" data-cx="102" data-cy="118">
+                <circle cx="102" cy="118" r="14" class="pspot__glow"/>
+                <circle cx="102" cy="118" r="10" class="pspot__dot"/>
+                <text x="102" y="121" text-anchor="middle" class="pspot__label">L1</text>
+              </g>
+              <g class="pspot" data-side="left"  data-region="scapula"  data-weight="0.70" data-cx="112" data-cy="170">
+                <circle cx="112" cy="170" r="14" class="pspot__glow"/>
+                <circle cx="112" cy="170" r="10" class="pspot__dot"/>
+                <text x="112" y="173" text-anchor="middle" class="pspot__label">L2</text>
+              </g>
+              <g class="pspot" data-side="left"  data-region="hip"      data-weight="1.00" data-cx="112" data-cy="265">
+                <circle cx="112" cy="265" r="18" class="pspot__glow"/>
+                <circle cx="112" cy="265" r="12" class="pspot__dot"/>
+                <text x="112" y="269" text-anchor="middle" class="pspot__label">L3</text>
+              </g>
+              <g class="pspot" data-side="left"  data-region="heel"     data-weight="0.60" data-cx="118" data-cy="450">
+                <circle cx="118" cy="450" r="12" class="pspot__glow"/>
+                <circle cx="118" cy="450" r="8"  class="pspot__dot"/>
+                <text x="118" y="453" text-anchor="middle" class="pspot__label">L4</text>
+              </g>
+
+              <g class="pspot" data-side="right" data-region="shoulder" data-weight="0.55" data-cx="158" data-cy="118">
+                <circle cx="158" cy="118" r="14" class="pspot__glow"/>
+                <circle cx="158" cy="118" r="10" class="pspot__dot"/>
+                <text x="158" y="121" text-anchor="middle" class="pspot__label">R1</text>
+              </g>
+              <g class="pspot" data-side="right" data-region="scapula"  data-weight="0.70" data-cx="148" data-cy="170">
+                <circle cx="148" cy="170" r="14" class="pspot__glow"/>
+                <circle cx="148" cy="170" r="10" class="pspot__dot"/>
+                <text x="148" y="173" text-anchor="middle" class="pspot__label">R2</text>
+              </g>
+              <g class="pspot" data-side="right" data-region="hip"      data-weight="1.00" data-cx="148" data-cy="265">
+                <circle cx="148" cy="265" r="18" class="pspot__glow"/>
+                <circle cx="148" cy="265" r="12" class="pspot__dot"/>
+                <text x="148" y="269" text-anchor="middle" class="pspot__label">R3</text>
+              </g>
+              <g class="pspot" data-side="right" data-region="heel"     data-weight="0.60" data-cx="148" data-cy="450">
+                <circle cx="148" cy="450" r="12" class="pspot__glow"/>
+                <circle cx="148" cy="450" r="8"  class="pspot__dot"/>
+                <text x="148" y="453" text-anchor="middle" class="pspot__label">R4</text>
+              </g>
+            </svg>
+            <div class="bodymap__legend">
+              <div><span class="dot-safe"></span><span data-i18n="lg_safe">Safe &lt; 32 mmHg</span></div>
+              <div><span class="dot-elev"></span><span data-i18n="lg_elev">Elevated 32–60</span></div>
+              <div><span class="dot-high"></span><span data-i18n="lg_high">High 60–100</span></div>
+              <div><span class="dot-crit"></span><span data-i18n="lg_crit">Critical &gt; 100</span></div>
+              <div><span class="dot-ref"></span><span data-i18n="lg_ref">Reference risk zones</span></div>
+              <div><span class="dot-live"></span><span data-i18n="lg_live">Live FSR sensors</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card vitals-card">
+        <header class="card__head"><h2 data-i18n="vitals_title">Vitals</h2><span class="pill" data-i18n="sensors">Sensors</span></header>
+        <div class="vital" id="vitalBody">
+          <div class="vital__icon vital__icon--temp"><svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10 4a2 2 0 1 1 4 0v10a4 4 0 1 1-4 0Z"/><circle cx="12" cy="17" r="2" fill="currentColor"/></svg></div>
+          <div class="vital__body">
+            <div class="vital__label"><span data-i18n="body_temp">Body Temperature</span> <em>MLX90614</em></div>
+            <div class="vital__value"><span id="bodyTemp">--</span><span class="vital__unit">°C</span></div>
+            <div class="vital__status" id="bodyStatus" data-i18n="awaiting">Awaiting reading…</div>
+          </div>
+        </div>
+        <div class="vital" id="vitalHum">
+          <div class="vital__icon vital__icon--hum"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2s7 8 7 13a7 7 0 0 1-14 0c0-5 7-13 7-13Z"/></svg></div>
+          <div class="vital__body">
+            <div class="vital__label"><span data-i18n="humidity">Humidity</span> <em>DHT22</em></div>
+            <div class="vital__value"><span id="humidity">--</span><span class="vital__unit">%</span></div>
+            <div class="vital__status" id="humStatus" data-i18n="awaiting">Awaiting reading…</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card turns-card">
+        <header class="card__head"><h2 data-i18n="turns_title">Repositioning</h2><span class="pill pill--muted" data-i18n="fsr_derived">FSR-derived</span></header>
+        <div class="turns-body">
+          <div class="ring">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="var(--c-border)" stroke-width="12"/>
+              <circle id="ringFg" cx="60" cy="60" r="52" fill="none" stroke="url(#ringG)" stroke-width="12" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327" transform="rotate(-90 60 60)"/>
+              <defs><linearGradient id="ringG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06b6d4"/><stop offset="1" stop-color="#0b3d63"/></linearGradient></defs>
+            </svg>
+            <div class="ring__center"><div class="ring__value" id="sinceTurn">0</div><div class="ring__label" data-i18n="min_since">min since turn</div></div>
+          </div>
+          <div class="turn-stats">
+            <div class="stat"><div class="stat__value" id="turnCount">0</div><div class="stat__label" data-i18n="turns_counted">Turns detected</div></div>
+            <div class="stat"><div class="stat__value" id="turnTarget">120</div><div class="stat__label" data-i18n="turn_target">Target (min)</div></div>
+            <div class="stat"><div class="stat__value" id="occStat">—</div><div class="stat__label" data-i18n="occupancy">Occupancy</div></div>
+          </div>
+        </div>
+        <div class="cop">
+          <div class="cop__label"><span data-i18n="load_balance">Load balance (CoP)</span><span id="copValue">+0.00</span></div>
+          <div class="cop__track"><div class="cop__mid"></div><div class="cop__marker" id="copMarker"></div></div>
+          <div class="cop__ends"><span data-i18n="left">Left</span><span data-i18n="balanced">Balanced</span><span data-i18n="right">Right</span></div>
+        </div>
+      </section>
+
+      <!-- AI Analysis card -->
+      <section class="card ai-card">
+        <header class="card__head">
+          <h2><span class="ai-chip"><span class="ai-chip__spark"></span>AI</span><span data-i18n="ai_title">UlcerShield AI Analysis</span></h2>
+          <span class="pill" id="aiState" data-i18n="ai_ready">Ready</span>
+        </header>
+        <div class="ai-hero">
+          <div class="risk-hero__num"><span id="riskScore">0</span><small>/100</small></div>
+          <div class="risk-hero__meta">
+            <div class="risk-bar"><div class="risk-bar__fill" id="riskFill"></div></div>
+            <div class="risk-hero__note" data-i18n="risk_note">Computed from pressure, immobility, moisture, temperature and asymmetry.</div>
+          </div>
+        </div>
+        <ul class="risk-breakdown">
+          <li><span data-i18n="risk_pressure">Pressure</span><em id="rp">0</em><i>/30</i></li>
+          <li><span data-i18n="risk_immobility">Immobility</span><em id="rt">0</em><i>/30</i></li>
+          <li><span data-i18n="risk_moisture">Moisture</span><em id="rm">0</em><i>/15</i></li>
+          <li><span data-i18n="risk_temperature">Temperature</span><em id="rtemp">0</em><i>/15</i></li>
+        </ul>
+        <div class="ai-messages" id="aiMessages"></div>
+      </section>
+
+      <!-- Recommendations card (توصيات) -->
+      <section class="card reco-card">
+        <header class="card__head">
+          <h2 data-i18n="reco_title">Positioning Recommendations</h2>
+          <span class="pill" data-i18n="reco_pill">توصيات</span>
+        </header>
+        <div class="reco-list" id="recoList"></div>
+      </section>
+
+      <section class="card timeline-card">
+        <header class="card__head"><h2 data-i18n="timeline_title">Event Timeline</h2><button class="link-btn" id="clearTimeline" data-i18n="clear">Clear</button></header>
+        <ol class="timeline" id="timeline"><li class="timeline__empty" data-i18n="no_events">No events yet.</li></ol>
+      </section>
+
+      <section class="card controls-card">
+        <header class="card__head"><h2 data-i18n="controls_title">Calibration & Controls</h2><span class="pill pill--muted">v4</span></header>
+        <p class="hint" data-i18n="cal_hint">Place a known 1 kg mass on a rigid disc over each pad before running calibration.</p>
+        <div class="controls">
+          <button class="btn btn--primary" data-cmd="cal_zero"><span data-i18n="btn_zero">Zero (unload both)</span></button>
+          <button class="btn" data-cmd="cal_a"><span class="btn__tag">A</span><span data-i18n="btn_cal_left">Calibrate Left</span></button>
+          <button class="btn" data-cmd="cal_b"><span class="btn__tag">B</span><span data-i18n="btn_cal_right">Calibrate Right</span></button>
+          <button class="btn btn--ghost" data-cmd="reset"><span data-i18n="btn_reset">Reset counters</span></button>
+        </div>
+      </section>
+
+    </section>
+  </template>
+
+  <template id="tpl-profile">
+    <section class="profile-view">
+      <header class="page-head">
+        <h1 data-i18n="profile_title">Profile</h1>
+        <p class="page-head__sub" data-i18n="profile_sub">Update personal info, health metrics and photo.</p>
+      </header>
+      <div class="card">
+        <form class="form form--grid" id="profileForm">
+          <label class="form__avatar">
+            <span data-i18n="photo">Photo</span>
+            <div class="avatar-upload">
+              <img id="profileAvatar" src="" alt="" />
+              <input type="file" id="profileAvatarInput" accept="image/*" />
+              <em data-i18n="tap_to_upload">Tap to upload</em>
+            </div>
+          </label>
+          <label><span data-i18n="username">Username</span><input name="username" readonly /></label>
+          <label><span data-i18n="full_name">Full name</span><input name="name" /></label>
+          <label><span data-i18n="email">Email</span><input name="email" type="email" /></label>
+          <label><span data-i18n="phone">Phone</span><input name="phone" type="tel" /></label>
+          <label><span data-i18n="age">Age</span><input name="age" type="number" /></label>
+          <label>
+            <span data-i18n="sex">Sex</span>
+            <select name="sex">
+              <option value="" data-i18n="select">Select…</option>
+              <option value="male" data-i18n="male">Male</option>
+              <option value="female" data-i18n="female">Female</option>
+              <option value="other" data-i18n="other">Other</option>
+            </select>
+          </label>
+          <label><span data-i18n="height_cm">Height (cm)</span><input name="height" type="number" /></label>
+          <label><span data-i18n="weight_kg">Weight (kg)</span><input name="weight" type="number" step="0.1" /></label>
+          <label class="form__full"><span data-i18n="notes">Clinical notes</span><textarea name="notes" rows="3"></textarea></label>
+          <div class="form__actions form__full">
+            <button class="btn" type="button" id="setActiveBtn" data-i18n="set_active">Monitor this patient</button>
+            <button class="btn btn--primary" type="submit" data-i18n="btn_save">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </template>
+
+  <template id="tpl-analysis">
+    <section class="analysis-view">
+      <header class="page-head">
+        <div>
+          <h1 data-i18n="analysis_title">Analysis</h1>
+          <p class="page-head__sub" data-i18n="analysis_sub">Historical trends, session summaries, and exports.</p>
+        </div>
+        <div class="page-head__actions">
+          <label class="date-range">
+            <span data-i18n="from">From</span>
+            <input type="date" id="fromDate" />
+          </label>
+          <label class="date-range">
+            <span data-i18n="to">To</span>
+            <input type="date" id="toDate" />
+          </label>
+          <button class="btn" id="exportCsv"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg><span data-i18n="export_csv">Export CSV</span></button>
+          <button class="btn" id="exportPdf"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 2h9l5 5v15H6z" opacity=".2"/><path fill="none" stroke="currentColor" stroke-width="2" d="M6 2h9l5 5v15H6zM15 2v5h5"/></svg><span data-i18n="export_pdf">Export PDF</span></button>
+        </div>
+      </header>
+
+      <div class="analysis-grid">
+        <section class="card kpi kpi--samples"><div class="kpi__label" data-i18n="kpi_samples">Samples</div><div class="kpi__value" id="kpiSamples">—</div></section>
+        <section class="card kpi kpi--avg"><div class="kpi__label" data-i18n="kpi_avg_p">Avg peak mmHg</div><div class="kpi__value" id="kpiAvg">—</div></section>
+        <section class="card kpi kpi--max"><div class="kpi__label" data-i18n="kpi_max_p">Max mmHg</div><div class="kpi__value" id="kpiMax">—</div></section>
+        <section class="card kpi kpi--turns"><div class="kpi__label" data-i18n="kpi_turns">Total turns</div><div class="kpi__value" id="kpiTurns">—</div></section>
+        <section class="card kpi kpi--risk"><div class="kpi__label" data-i18n="kpi_avg_risk">Avg risk</div><div class="kpi__value" id="kpiRisk">—</div></section>
+        <section class="card kpi kpi--occ"><div class="kpi__label" data-i18n="kpi_occ">Occupancy %</div><div class="kpi__value" id="kpiOcc">—</div></section>
+
+        <section class="card chart-card">
+          <header class="card__head"><h2 data-i18n="chart_pressure">Pressure over time</h2></header>
+          <div class="chart" id="chartPressure"></div>
+        </section>
+
+        <section class="card chart-card">
+          <header class="card__head"><h2 data-i18n="chart_risk">Risk score</h2></header>
+          <div class="chart" id="chartRisk"></div>
+        </section>
+
+        <section class="card chart-card">
+          <header class="card__head"><h2 data-i18n="chart_env">Body temperature & humidity</h2></header>
+          <div class="chart" id="chartEnv"></div>
+        </section>
+
+        <section class="card chart-card">
+          <header class="card__head"><h2 data-i18n="chart_cop">Center of Pressure</h2></header>
+          <div class="chart" id="chartCop"></div>
+        </section>
+      </div>
+    </section>
+  </template>
+
+  <script src="app.js?v=11"></script>
+</body>
+</html>

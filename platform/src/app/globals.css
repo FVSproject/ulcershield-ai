@@ -1,0 +1,373 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --font-sans:
+    var(--font-geist-sans), "Inter", system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, "SF Mono", "Segoe UI Mono", Menlo,
+    Consolas, monospace;
+  --font-ar:
+    "Segoe UI", Tahoma, Arial, "Geeza Pro", "Al Bayan", var(--font-sans);
+  --font-ko:
+    "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", "Nanum Gothic",
+    var(--font-sans);
+
+  --color-brand-50: #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-300: #67e8f9;
+  --color-brand-400: #22d3ee;
+  --color-brand-500: #06b6d4;
+  --color-brand-600: #0891b2;
+  --color-brand-700: #0e7490;
+  --color-brand-800: #155e75;
+  --color-brand-900: #164e63;
+  --color-brand-950: #083344;
+
+  --color-navy-50: #f0f6fc;
+  --color-navy-100: #dfe8f2;
+  --color-navy-200: #b7cbe1;
+  --color-navy-300: #85a8c9;
+  --color-navy-400: #517fa8;
+  --color-navy-500: #2f5f89;
+  --color-navy-600: #1e4771;
+  --color-navy-700: #133458;
+  --color-navy-800: #0e2540;
+  --color-navy-900: #071527;
+  --color-navy-950: #030b16;
+
+  --color-safe: #10b981;
+  --color-elev: #f59e0b;
+  --color-high: #f97316;
+  --color-crit: #ef4444;
+
+  --radius-lg: 20px;
+  --radius: 14px;
+  --radius-sm: 10px;
+
+  --shadow-glow: 0 0 40px -8px color-mix(in oklab, var(--color-brand-500) 55%, transparent);
+  --shadow-glow-lg: 0 0 80px -16px color-mix(in oklab, var(--color-brand-400) 60%, transparent);
+
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* -------------------- theme: light -------------------- */
+:root,
+[data-theme="light"] {
+  --c-bg: #eef4fb;
+  --c-bg-2: #dde8f4;
+  --c-surface: #ffffff;
+  --c-surface-2: #f7fafd;
+  --c-border: #e2ecf5;
+  --c-border-2: #c7d6e7;
+  --c-text: #0b1a2b;
+  --c-text-2: #385274;
+  --c-muted: #6b8199;
+  --c-primary: #0b3d63;
+  --c-primary-2: #06b6d4;
+  --c-accent: #22d3ee;
+
+  --grad-bg:
+    radial-gradient(1400px 700px at 100% -10%, rgba(6, 182, 212, 0.14), transparent 55%),
+    radial-gradient(1200px 700px at -10% 20%, rgba(11, 61, 99, 0.10), transparent 55%),
+    linear-gradient(180deg, #eaf2fb 0%, #dde8f4 100%);
+  --grad-hero:
+    radial-gradient(1200px 600px at 50% -20%, rgba(34, 211, 238, 0.25), transparent 60%),
+    radial-gradient(600px 400px at 90% 10%, rgba(11, 61, 99, 0.20), transparent 55%);
+  --grad-primary: linear-gradient(135deg, #06b6d4 0%, #0b3d63 100%);
+  --grad-primary-soft: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(11, 61, 99, 0.15) 100%);
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-brd: rgba(11, 61, 99, 0.10);
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow: 0 2px 4px rgba(15, 23, 42, 0.05), 0 12px 32px -8px rgba(15, 23, 42, 0.10);
+  --shadow-lg: 0 30px 60px -20px rgba(15, 23, 42, 0.20);
+}
+
+/* -------------------- theme: dark -------------------- */
+[data-theme="dark"] {
+  --c-bg: #030b16;
+  --c-bg-2: #061525;
+  --c-surface: #0b1e33;
+  --c-surface-2: #10273f;
+  --c-border: #143152;
+  --c-border-2: #1f4270;
+  --c-text: #e8f3ff;
+  --c-text-2: #9ab6d6;
+  --c-muted: #6b8ba8;
+  --c-primary: #38bdf8;
+  --c-primary-2: #22d3ee;
+  --c-accent: #67e8f9;
+
+  --grad-bg:
+    radial-gradient(1400px 800px at 110% -10%, rgba(6, 182, 212, 0.18), transparent 55%),
+    radial-gradient(1200px 700px at -10% 30%, rgba(59, 130, 246, 0.12), transparent 55%),
+    linear-gradient(180deg, #030b16 0%, #061525 100%);
+  --grad-hero:
+    radial-gradient(1400px 700px at 50% -10%, rgba(6, 182, 212, 0.35), transparent 60%),
+    radial-gradient(700px 400px at 15% 10%, rgba(59, 130, 246, 0.20), transparent 55%);
+  --grad-primary: linear-gradient(135deg, #22d3ee 0%, #0891b2 60%, #164e63 100%);
+  --grad-primary-soft: linear-gradient(135deg, rgba(34, 211, 238, 0.18) 0%, rgba(8, 145, 178, 0.18) 100%);
+
+  --glass-bg: rgba(11, 30, 51, 0.55);
+  --glass-brd: rgba(56, 189, 248, 0.15);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 32px -8px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 30px 80px -20px rgba(0, 0, 0, 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-bg-2: var(--c-bg-2);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-border: var(--c-border);
+  --color-border-2: var(--c-border-2);
+  --color-fg: var(--c-text);
+  --color-fg-2: var(--c-text-2);
+  --color-muted: var(--c-muted);
+  --color-primary: var(--c-primary);
+  --color-accent: var(--c-accent);
+}
+
+* {
+  box-sizing: border-box;
+  border-color: var(--c-border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--c-text);
+  background: var(--grad-bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+}
+
+html[lang="ar"] body {
+  font-family: var(--font-ar);
+}
+
+html[lang="ko"] body {
+  font-family: var(--font-ko);
+}
+
+/* Focus styles */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--c-primary-2);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--c-primary-2) 40%, transparent);
+  color: var(--c-text);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--c-border-2);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--c-primary-2) 50%, var(--c-border-2));
+  background-clip: padding-box;
+}
+
+/* -------------------- utilities -------------------- */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  backdrop-filter: blur(30px) saturate(1.6);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--c-primary-2) 0%, var(--c-text) 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-brand {
+  background: linear-gradient(135deg, #22d3ee 0%, #67e8f9 40%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-mesh {
+  background:
+    radial-gradient(600px 300px at 20% 20%, rgba(34, 211, 238, 0.12), transparent 60%),
+    radial-gradient(600px 300px at 80% 60%, rgba(11, 61, 99, 0.10), transparent 60%);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--c-border) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--c-border) 60%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+}
+
+.bg-dots {
+  background-image: radial-gradient(circle, color-mix(in oklab, var(--c-border-2) 60%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c-border-2), transparent);
+}
+
+/* -------------------- animations -------------------- */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--c-primary-2) 60%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 12px color-mix(in oklab, var(--c-primary-2) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--c-primary-2) 0%, transparent);
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes grid-drift {
+  0%   { background-position: 0 0, 0 0; }
+  100% { background-position: 48px 48px, 48px 48px; }
+}
+
+@keyframes gradient-move {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-pulse-ring { animation: pulse-ring 2s infinite; }
+.animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 22s linear infinite; }
+.animate-grid { animation: grid-drift 40s linear infinite; }
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-move 8s ease infinite;
+}
+
+/* Skeleton shimmer for loading states */
+.skeleton {
+  background: linear-gradient(90deg, var(--c-surface-2) 0%, var(--c-border) 50%, var(--c-surface-2) 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: var(--radius);
+}
+
+/* Live pulsing dot */
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-safe);
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  background: var(--color-safe);
+  opacity: 0.35;
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
+/* Numeric emphasis */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Card baseline */
+.card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Ambient orbs (used behind hero) */
+.orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(64px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* RTL adjustments */
+html[dir="rtl"] .rtl-mirror {
+  transform: scaleX(-1);
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
