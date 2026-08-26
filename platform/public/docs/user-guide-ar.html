@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UlcerShield AI · دليل المستخدم (العربية)</title>
+<style>
+  :root {
+    --ink: #0e2540;
+    --ink-2: #385274;
+    --muted: #6b8199;
+    --line: #dbe4ef;
+    --brand: #0891b2;
+    --accent: #22d3ee;
+    --safe: #10b981;
+    --warn: #f59e0b;
+    --high: #f97316;
+    --crit: #ef4444;
+    --page-max: 780px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: "Segoe UI", "Tahoma", "Arial", "Geeza Pro", "Al Bayan", sans-serif;
+    font-size: 15.5px;
+    line-height: 1.75;
+    background: #f4f7fb;
+    text-align: right;
+  }
+  main { max-width: var(--page-max); margin: 0 auto; padding: 56px 48px; background: white; box-shadow: 0 30px 80px -20px rgba(15,23,42,.15); }
+  h1, h2, h3, h4 { color: var(--ink); font-weight: 700; letter-spacing: 0; line-height: 1.3; }
+  h1 { font-size: 34px; margin: 0 0 6px; }
+  h2 { font-size: 24px; margin: 48px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--brand); page-break-after: avoid; break-after: avoid; }
+  h3 { font-size: 18px; margin: 28px 0 8px; color: var(--brand); page-break-after: avoid; break-after: avoid; }
+  h4 { font-size: 15px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+  p { margin: 0 0 10px; }
+  ul, ol { margin: 0 0 12px; padding-right: 22px; padding-left: 0; }
+  li { margin: 3px 0; }
+  code, kbd {
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 0.9em;
+    background: #eef4fb;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid #e2ecf5;
+    color: var(--brand);
+    direction: ltr;
+    display: inline-block;
+    unicode-bidi: isolate;
+  }
+  pre { background: #0e2540; color: #dfe8f4; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; direction: ltr; text-align: left; font-family: "SF Mono", Consolas, monospace; }
+  a { color: var(--brand); text-decoration: none; border-bottom: 1px dotted var(--brand); }
+  hr { border: 0; height: 1px; background: var(--line); margin: 30px 0; }
+  .lede { color: var(--ink-2); font-size: 15.5px; margin-top: 4px; }
+  .cover { text-align: center; padding: 40px 0 24px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .cover .brand { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .cover .badge { display: inline-block; background: linear-gradient(135deg,#22d3ee,#0b3d63); color: white; font-size: 11px; letter-spacing: 0.16em; padding: 5px 14px; border-radius: 999px; font-weight: 700; }
+  .cover h1 { font-size: 40px; margin: 8px 0 6px; }
+  .cover .lede { font-size: 17px; max-width: 560px; margin: 6px auto 0; }
+  .toc { background: #f4f7fb; border: 1px solid var(--line); border-radius: 8px; padding: 20px 24px; margin: 20px 0 36px; }
+  .toc h2 { border: none; margin: 0 0 10px; font-size: 15px; letter-spacing: 0.05em; color: var(--muted); }
+  .toc ol { padding-right: 20px; margin: 0; column-count: 2; column-gap: 24px; }
+  .toc li { margin: 3px 0; break-inside: avoid; font-size: 14px; }
+  .callout { border-right: 3px solid var(--brand); background: #eef8fc; padding: 12px 16px; border-radius: 6px 0 0 6px; margin: 14px 0; font-size: 14.5px; }
+  .callout.warn { border-color: var(--warn); background: #fef7e6; }
+  .callout.danger { border-color: var(--crit); background: #fdecec; }
+  .callout.tip { border-color: var(--safe); background: #eafaf3; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: right; vertical-align: top; }
+  th { background: #f4f7fb; font-weight: 700; color: var(--ink); }
+  .kbd { display: inline-block; background: white; border: 1px solid var(--line); box-shadow: 0 1px 0 #cbd5e1; padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--ink-2); direction: ltr; }
+  .section { page-break-before: auto; }
+  .step { display: grid; grid-template-columns: 32px 1fr; gap: 14px; margin: 10px 0; direction: rtl; }
+  .step .n { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--brand); color: white; font-weight: 700; font-size: 12.5px; direction: ltr; }
+  .badge-inline { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 700; margin-left: 4px; }
+  .b-safe { background: #d1f5e5; color: #045c3d; }
+  .b-warn { background: #fdf1cf; color: #755100; }
+  .b-high { background: #fddec6; color: #7a3400; }
+  .b-crit { background: #fbd6d6; color: #7a0e0e; }
+  .b-brand { background: #d0f2fa; color: #0e6a80; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); text-align: center; }
+  .print-cta { position: sticky; top: 0; background: #0e2540; color: white; padding: 10px 20px; text-align: center; font-size: 13px; z-index: 10; }
+  .print-cta button { background: var(--accent); color: #0e2540; border: none; padding: 6px 14px; border-radius: 999px; font-weight: 700; cursor: pointer; margin-right: 10px; font-family: inherit; }
+  .num, .en { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+  @media print {
+    body { background: white; }
+    main { box-shadow: none; padding: 0; max-width: none; }
+    .print-cta { display: none; }
+    h2 { page-break-before: auto; break-before: auto; }
+    h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+    pre, .callout, table, .step { page-break-inside: avoid; break-inside: avoid; }
+    a { color: var(--brand); border: none; }
+    a[href]::after { content: ""; }
+    @page { margin: 18mm 15mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="print-cta">
+  للطباعة أو حفظ الملف كـPDF اضغط <span class="kbd">Ctrl</span> + <span class="kbd">P</span>
+  <button onclick="window.print()">طباعة / حفظ كـPDF</button>
+</div>
+
+<main>
+
+<div class="cover">
+  <div class="brand">
+    <span class="badge">UlcerShield AI · دليل المستخدم</span>
+  </div>
+  <h1>منصّة الوقاية من قرحة الفراش</h1>
+  <p class="lede">توأم رقمي مدعوم بالذكاء الاصطناعي للوقاية من قرحة الفراش في الوقت الحقيقي.<br />
+  مرجع شامل لكل ميزات المنصّة وكيفية استخدامها.</p>
+  <p style="margin-top: 20px; font-size: 13px; color: var(--muted);">الإصدار <span class="num">2</span> · العربية · متاح أيضاً بالإنجليزية.</p>
+</div>
+
+<div class="callout warn">
+  <strong>نموذج بحثي — ليس جهازاً طبياً معتمداً.</strong>
+  العتبات مستمدّة من الأدبيات (منحنى Reswick–Rogers، محاور مقياسَي Braden وWaterlow، إرشادات EPUAP/NPUAP <span class="num">2019</span>). جميع التوصيات تحتاج إلى تحقّق سريري.
+</div>
+
+<div class="toc">
+  <h2>المحتويات</h2>
+  <ol>
+    <li><a href="#intro"><span class="num">1</span>. مقدّمة</a></li>
+    <li><a href="#platform-overview"><span class="num">2</span>. نظرة عامة على المنصّة</a></li>
+    <li><a href="#getting-started"><span class="num">3</span>. البدء</a></li>
+    <li><a href="#landing"><span class="num">4</span>. الصفحة الرئيسية</a></li>
+    <li><a href="#dashboard"><span class="num">5</span>. لوحة القيادة المُخصَّصة</a></li>
+    <li><a href="#body3d"><span class="num">6</span>. التوأم الرقمي ثلاثي الأبعاد</a></li>
+    <li><a href="#rstt"><span class="num">7</span>. الوقت الآمن المتبقّي للأنسجة</a></li>
+    <li><a href="#risk"><span class="num">8</span>. مؤشّر الخطر (<span class="num">5</span> محاور)</a></li>
+    <li><a href="#ai"><span class="num">9</span>. توصيات الذكاء الاصطناعي (Claude)</a></li>
+    <li><a href="#admin"><span class="num">10</span>. لوحة المشرف</a></li>
+    <li><a href="#analysis"><span class="num">11</span>. تحليل الجلسة والتصدير</a></li>
+    <li><a href="#connect"><span class="num">12</span>. اتصال الجهاز (BLE)</a></li>
+    <li><a href="#profile"><span class="num">13</span>. إدارة الحساب</a></li>
+    <li><a href="#algorithm"><span class="num">14</span>. الخوارزمية بالتفصيل</a></li>
+    <li><a href="#privacy"><span class="num">15</span>. الخصوصيّة والبيانات</a></li>
+    <li><a href="#i18n"><span class="num">16</span>. اللغات والسمات</a></li>
+    <li><a href="#firmware"><span class="num">17</span>. فيرموير ESP32 (BLE)</a></li>
+    <li><a href="#deploying"><span class="num">18</span>. نشر المنصّة</a></li>
+    <li><a href="#troubleshooting"><span class="num">19</span>. حلّ المشكلات</a></li>
+    <li><a href="#references"><span class="num">20</span>. المراجع</a></li>
+  </ol>
+</div>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="intro">
+<h2><span class="num">1</span> · مقدّمة</h2>
+
+<p><strong>UlcerShield AI</strong> منصّة ذكاء متعدد الوسائط تساعد المُعالجين على منع قرح الفراش قبل حدوثها. تقترن بمنظومة مستشعرات <span class="num">ESP32</span> منخفضة التكلفة عبر بلوتوث منخفض الطاقة، وتنقل بيانات الضغط والحرارة والرطوبة والوضعية آنياً، ثم تحوّل هذا التدفّق إلى خطة رعاية مُخصَّصة.</p>
+
+<p>صُمّمت المنصّة لثلاث بيئات:</p>
+<ul>
+  <li><strong>المستشفيات ووحدات العناية المركّزة</strong> — مراقبة مستمرّة بجانب السرير للمرضى غير القادرين على الحركة.</li>
+  <li><strong>دور الرعاية طويلة الأمد</strong> — وقاية مُخصَّصة طوال فترات الإقامة الممتدّة.</li>
+  <li><strong>الرعاية المنزلية</strong> — توقّع بمستوى المستشفى داخل المنزل.</li>
+</ul>
+
+<h3>ما الذي يميّزها</h3>
+<ul>
+  <li><strong>التوأم الرقمي للأنسجة</strong> — نموذج حاسوبي خاصّ بكل مريض للأنسجة الحسّاسة، يتطوّر مع تغيّر الضغط والرطوبة والحرارة والحركة وعوامل الخطر السريرية.</li>
+  <li><strong>الوقت الآمن المتبقّي للأنسجة</strong> — بدلاً من «هل الضغط مرتفع؟»، يجيب على «كم من الوقت تستطيع هذه الأنسجة أن تتحمّل الوضعية الحالية بأمان؟».</li>
+  <li><strong>الذكاء الاصطناعي لا يُنبّه فقط، بل يوصي</strong> — يقترح اتجاه التقليب الأمثل والزاوية والتوقيت.</li>
+  <li><strong>قابل للتفسير</strong> — كل درجة خطر مُفكَّكة إلى أسبابها ليثق بها الأطباء.</li>
+  <li><strong>مُخصَّص</strong> — يأخذ العمر ومؤشّر كتلة الجسم والجنس والأمراض المزمنة والأدوية والعلاجات بعين الاعتبار.</li>
+  <li><strong>وضع البالغين ووضع الرضّع</strong> — منحنيات تحمّل مختلفة، نقاط تشريحية مختلفة، ونموذج ثلاثي الأبعاد مختلف.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="platform-overview">
+<h2><span class="num">2</span> · نظرة عامة على المنصّة</h2>
+
+<h3>الأدوار</h3>
+<p>لكل حساب دور يحدّد ما يراه في المنصّة:</p>
+<table>
+  <tr><th>الدور</th><th>يستطيع رؤية</th><th>لا يستطيع رؤية</th></tr>
+  <tr>
+    <td><strong>مريض</strong></td>
+    <td>لوحته الشخصية، التحليلات، توصيات الذكاء الاصطناعي، حسابه، واقتران الجهاز.</td>
+    <td>بيانات مرضى آخرين. لوحة المشرف. قائمة المرضى.</td>
+  </tr>
+  <tr>
+    <td><strong>مشرف</strong></td>
+    <td>لوحة كل مريض، قائمة المرضى مع إحصاءات الخطر الحيّة، إضافة/حذف المرضى.</td>
+    <td>لا يوجد قيد.</td>
+  </tr>
+</table>
+
+<h3>تخزين البيانات</h3>
+<p>تُخزَّن كل سجلات المرضى وسجلات الجلسات <strong>محلياً في المتصفح</strong> (IndexedDB). لا يُرفع أي شيء إلى خادم مركزي. الاتصالات الشبكية الوحيدة التي تجريها المنصّة هي:</p>
+<ul>
+  <li>تحميل ملفات HTML/CSS/JS من Vercel (مرّة واحدة، ثم من الذاكرة المؤقتة).</li>
+  <li>استدعاء واجهة Anthropic Claude عند الضغط على <em>اسأل Claude</em>، عبر دالّة خادمية تُخفي مفتاح API.</li>
+</ul>
+
+<h3>تعدّد اللغات</h3>
+<p>الإنجليزية والعربية (باتجاه الكتابة من اليمين إلى اليسار) والكورية. كل نص ظاهر — بما في ذلك السرد السريري من Claude — يحترم اللغة المختارة.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="getting-started">
+<h2><span class="num">3</span> · البدء</h2>
+
+<h3>تسجيل حساب</h3>
+<div class="step"><span class="n">1</span><div>اذهب إلى رابط الموقع المنشور. اضغط <strong>سجّل هنا</strong> من صفحة تسجيل الدخول (أو <em>افتح المنصّة</em> من الصفحة الرئيسية).</div></div>
+<div class="step"><span class="n">2</span><div>ارفع صورة شخصية اختياريّة. أدخل اسم المستخدم وكلمة المرور والاسم الكامل.</div></div>
+<div class="step"><span class="n">3</span><div><strong>اختر نوع المريض</strong> — بالغ أو رضيع. هذا الاختيار يغيّر خوارزمية الخطر بالكامل والنموذج ثلاثي الأبعاد. الافتراضي بالغ (<span class="num">13</span> سنة فأكبر)؛ الرضيع لمن هم دون السنتين.</div></div>
+<div class="step"><span class="n">4</span><div>أدخل العمر والجنس والطول والوزن. جميعها اختياريّة، لكنها تُخصّص نموذج الخطر — تركها يعني تطبيق مُعدِّلات محايدة.</div></div>
+<div class="step"><span class="n">5</span><div>اختر <strong>الأمراض القائمة</strong>: السكري، مرض الأوعية الطرفية، أمراض القلب، الفشل الكلوي، سوء التغذية، اعتلال الأعصاب أو إصابة الحبل الشوكي، سلس البول/البراز، الخرف، سرطان نشط. أضف أي شيء آخر في الحقل الحر.</div></div>
+<div class="step"><span class="n">6</span><div>اختر <strong>الأدوية الحالية</strong>: كورتيكوستيرويدات، قابضات الأوعية، مضادّات التخثّر، مهدّئات مزمنة، مضادّات التهاب لاستيرويدية مزمنة. أضف أدوية أخرى في الحقل الحر.</div></div>
+<div class="step"><span class="n">7</span><div>اختر <strong>العلاجات الخاصة</strong>: تنفّس صناعي، غسيل كلوي، علاج كيميائي، علاج إشعاعي، جبس أو شدّ، أنبوب تغذية.</div></div>
+<div class="step"><span class="n">8</span><div>أضف ملاحظات سريرية (الحركة، جروح موجودة، ملاحظات الفريق).</div></div>
+<div class="step"><span class="n">9</span><div>اضغط <strong>إنشاء الحساب</strong>.</div></div>
+
+<div class="callout tip">
+  <strong>ملاحظة للمستخدم الأول: التسجيل كمشرف.</strong>
+  أول حساب في المتصفح يرى خياراً «التسجيل كمشرف» في أعلى النموذج. فعّله لإنشاء حساب المشرف. جميع الحسابات اللاحقة مرضى عاديّون.
+</div>
+
+<h3>تسجيل الدخول</h3>
+<p>الزيارات التالية: أدخل اسم المستخدم وكلمة المرور في <code>/login</code>. المشرفون يُوجَّهون إلى لوحة المشرف؛ المرضى يذهبون مباشرة إلى لوحتهم الشخصية.</p>
+
+<h3>الوضع التجريبي</h3>
+<p>صفحة تسجيل الدخول تحوي زرّاً <strong>«المتابعة كمريض تجريبي»</strong>. يُنشئ مريضاً افتراضياً محاكاة (<span class="num">74</span> سنة، أنثى، <span class="num">162 cm</span>، <span class="num">58 kg</span>) لاستكشاف المنصّة دون تسجيل.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="landing">
+<h2><span class="num">4</span> · الصفحة الرئيسية</h2>
+
+<p>الصفحة العامة للموقع. يستطيع أي زائر رؤيتها دون تسجيل دخول.</p>
+
+<h3>الأقسام</h3>
+<ul>
+  <li><strong>البطل (Hero)</strong> — شعار العلامة، زرّ الإطلاق، ومحاكاة جهاز حيّة بحركة بيانات.</li>
+  <li><strong>الرؤية</strong> — ملخّص «اعرف الخطر · اعرف الوقت · اعرف الإجراء» + ثلاث انتقالات «من ← إلى».</li>
+  <li><strong>الابتكارات الأساسية</strong> — خمس بطاقات: التوأم الرقمي للأنسجة، الوقت الآمن المتبقّي، توقّع الخطر بالذكاء الاصطناعي، التدخّل المُخصَّص، التعلّم المستمرّ.</li>
+  <li><strong>عرض حيّ</strong> — منحنى ضغط محاكى في الزمن الحقيقي مع مؤشّر خطر متجدّد.</li>
+  <li><strong>كيف تعمل</strong> — الحلقة الخماسيّة: استشعر ← توقّع ← أوصِ ← تدخّل ← تعلّم.</li>
+  <li><strong>مجالات التطبيق</strong> — المستشفيات، الرعاية طويلة الأمد، إعادة التأهيل، الرعاية المنزلية.</li>
+  <li><strong>دعوة للعمل</strong> — «وقاية أذكى. مرضى أكثر أماناً.»</li>
+</ul>
+
+<h3>عناصر التحكّم في الترويسة (ظاهرة في كل الصفحات)</h3>
+<table>
+  <tr><th>الزرّ</th><th>الوظيفة</th></tr>
+  <tr><td><span class="kbd">☀ / ☾</span></td><td>تبديل السمة فاتحة/داكنة.</td></tr>
+  <tr><td><span class="kbd">T · S/M/L/XL</span></td><td>تدوير حجم النص (<span class="num">14/15.5/17/19 px</span>).</td></tr>
+  <tr><td><span class="kbd">🌐 EN / عربي / 한국어</span></td><td>تدوير اللغة. العربية تقلب التخطيط إلى RTL. مخرجات Claude تتبع الاختيار.</td></tr>
+</table>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="dashboard">
+<h2><span class="num">5</span> · لوحة القيادة المُخصَّصة</h2>
+
+<p>العرض السريري الرئيسي. كل بطاقة حيّة — تُحدَّث بمعدّل <span class="num">1 Hz</span> من تدفّق المستشعرات (BLE فعلي أو محاكاة).</p>
+
+<h3>الترويسة</h3>
+<p>تعرض عنوان الصفحة («لوحة الرعاية المُخصَّصة للمريض»)، عنواناً فرعياً، و<strong>شارة الاتصال</strong> في الزاوية العلوية. ألوان الشارة تتغيّر حسب مصدر المستشعرات:</p>
+<ul>
+  <li><span class="badge-inline b-safe">BLE متّصل</span> — مقترن بجهاز <span class="num">ESP32</span> عبر بلوتوث.</li>
+  <li><span class="badge-inline b-brand">محاكاة</span> — مصدر بيانات تركيبي (افتراضي بدون أجهزة).</li>
+  <li><span class="badge-inline b-warn">جارٍ الاتصال…</span> — الاقتران قيد التقدّم.</li>
+  <li><span class="badge-inline b-crit">غير متصل</span> — لا تدفّق بيانات.</li>
+</ul>
+<p>اضغط الشارة لفتح صفحة <code>/connect</code> للاقتران.</p>
+
+<h3>بطاقة المريض</h3>
+<p>الصورة، الاسم الكامل، المُعرِّف، العمر، الجنس، الطول، الوزن، وشريط الحالة الحيّة (منخفض/متوسط/مرتفع/حرج) مع درجة الخطر (<span class="num">0–100</span>).</p>
+
+<h3>توصية الذكاء الاصطناعي</h3>
+<p>البطاقة الأهم على الإطلاق. تعرض الإجراء الموصى به الآن (مثلاً <em>«قلّب المريض <span class="num">30°</span> إلى اليسار الآن»</em>) مع:</p>
+<ul>
+  <li><strong>شارة نبرة</strong>: إرشادي · تصرّف قريباً · عاجل.</li>
+  <li><strong>لماذا</strong> — قائمة نقاط بالإشارات المحدّدة التي أنتجت التوصية (مثلاً «ذروة <span class="num">78 mmHg</span> على العجز»، «الرطوبة <span class="num">68%</span>»).</li>
+  <li>زرّ <strong>تطبيق التوصية</strong> — يسجّل أن المُعالج نفّذ الإجراء.</li>
+  <li><strong>الوقت الآمن المتبقّي المُقدَّر</strong> — كم دقيقة تبقى الوضعية الحالية آمنة.</li>
+</ul>
+
+<h3>مناطق الضغط (يسار / يمين)</h3>
+<p>قراءات حيّة من مستشعرَي <span class="num">FSR</span>، تُظهر القوّة بالنيوتن، الضغط بـ<span class="num">mmHg</span> (الأساسي)، والغرامات المكافئة. كل منطقة تعرض:</p>
+<ul>
+  <li><strong>شارة المستوى</strong>: <span class="badge-inline b-safe">آمن</span> (<span class="num">&lt; 32 mmHg</span>)، <span class="badge-inline b-warn">مرتفع</span> (<span class="num">32–60</span>)، <span class="badge-inline b-high">عالٍ</span> (<span class="num">60–100</span>)، <span class="badge-inline b-crit">حرج</span> (<span class="num">&gt; 100</span>)، أو <span class="badge-inline b-crit">مُشبع</span> (المستشعر تجاوز الحدّ).</li>
+  <li><strong>شريط بعلامات سريرية</strong> عند <span class="num">32</span> (إغلاق الشعيرات)، <span class="num">60</span> (مرتفع)، <span class="num">100</span> (حرج).</li>
+  <li><strong>ذروة الجلسة الحالية</strong> — أعلى قراءة <span class="num">mmHg</span> منذ آخر إعادة تعيين.</li>
+</ul>
+
+<h3>خريطة ضغط الجسم (ثنائية الأبعاد)</h3>
+<p>رسم SVG لصورة ظلّية للمريض في وضع الاستلقاء مع ثماني نقاط ضغط (الكتفان، لوحا الكتف، الوركان، الكعبان — يمين ويسار). كل نقطة تنبض؛ الحجم واللون يتبعان الضغط المُقدَّر في تلك المنطقة.</p>
+
+<h3>العلامات الحيوية والمناخ الدقيق</h3>
+<p>حرارة الجسم (<span class="num">MLX90614</span> بالأشعة تحت الحمراء) والرطوبة (<span class="num">DHT22</span>). كل صفّ يعرض القيمة والوحدة واسم المستشعر ورسالة حالة سريرية — مثلاً «مرتفعة — افحص الجلد بحثاً عن احمرار» عند <span class="num">&gt; 37.5 °C</span>.</p>
+
+<h3>حلقة التقليب</h3>
+<p>حلقة دائرية تُظهر الدقائق منذ آخر تقليب مكتشف. تمتلئ الحلقة نحو هدف الساعتين وتتحول إلى الكهرماني عند <span class="num">&gt; 75%</span> والأحمر عند <span class="num">100%</span>. إحصاءات مجاورة: عدد التقليبات، الدقائق المستهدفة، حالة الإشغال، ومؤشّر مركز الضغط يُبيّن هل المريض مائل يميناً أم متوازن أم يساراً.</p>
+
+<h3>قائمة التوصيات</h3>
+<p>توجيه مبني على قواعد مشتق من نموذج الخطر المحلي (مستقل عن Claude). ظاهر دائماً، يتحدّث آنياً. يحوي حتى <span class="num">15</span> بطاقة قصيرة تشمل:</p>
+<ul>
+  <li>توجيه الوضعية الأساسي (تقليب لليمين أو اليسار أو العودة للاستلقاء).</li>
+  <li>مؤقّت التقليب (قريباً، الآن).</li>
+  <li>نصائح مبنية على الضغط (ذروة <span class="num">&gt; 100 mmHg</span>، التشبّع).</li>
+  <li>تحذير من عدم التوازن.</li>
+  <li>تنبيهات الرطوبة/الحرارة.</li>
+  <li>تذكيرات دائمة: رفع الكعبين، إبقاء رأس السرير <span class="num">≤ 30°</span>.</li>
+</ul>
+
+<h3>سجلّ الأحداث</h3>
+<p>قائمة مرتّبة بآخر <span class="num">40</span> حدثاً — تقليب مكتشف، أوامر معايرة، إعادة تعيين، اتصال/انقطاع المستشعر. كل صفّ يعرض مؤشّراً ملوّناً حسب نوع الحدث، نصّاً واضحاً، وطابعاً زمنياً مع زمن التشغيل.</p>
+
+<h3>المعايرة والتحكّم</h3>
+<p>أربعة أزرار ترسل أوامر إلى <span class="num">ESP32</span> عبر BLE:</p>
+<table>
+  <tr><th>الزرّ</th><th>التأثير</th></tr>
+  <tr><td>تصفير</td><td>يسجّل خطّ الأساس دون حِمل لكلا الوسادتين. نفّذها ولا شيء على المستشعرات.</td></tr>
+  <tr><td>معايرة اليسار</td><td>يسجّل ثابت القوة/المقاومة لـ<span class="num">FSR A</span>. ضع كتلة <span class="num">1 kg</span> معلومة على الوسادة اليسرى أولاً.</td></tr>
+  <tr><td>معايرة اليمين</td><td>نفس الشيء لـ<span class="num">FSR B</span>.</td></tr>
+  <tr><td>إعادة تعيين</td><td>يصفّر عدد التقليبات والجرعة وقيم الذروة.</td></tr>
+</table>
+<p>عند التشغيل بالمحاكاة، تعرض الأزرار رسالة «المحاكاة نشطة — اقترن عبر BLE» بدلاً من التنفيذ.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="body3d">
+<h2><span class="num">6</span> · التوأم الرقمي ثلاثي الأبعاد</h2>
+
+<p>نموذج تشريحي ثلاثي الأبعاد للمريض مستلقياً على سرير المستشفى. ستّ نقاط ضغط تُغطّي المناطق التشريحية الحسّاسة وتنبض بمعدّل يتناسب مع درجة الخطر الحيّة.</p>
+
+<h3>وضع البالغين</h3>
+<ul>
+  <li>مانيكان تشريحي بالحجم الطبيعي (~<span class="num">1.7 m</span>).</li>
+  <li>ستّ نقاط: الكتفان، العجز، الورك الأيسر، الورك الأيمن، الكعب الأيسر، الكعب الأيمن.</li>
+  <li>العجز مرجّح بالأعلى (منطقة الحمل السائدة في وضع الاستلقاء).</li>
+</ul>
+
+<h3>وضع الرضيع</h3>
+<ul>
+  <li>أبعاد حديث الولادة (~<span class="num">50 cm</span>، نسبة الرأس إلى الجسم ≈ <span class="num">1:4</span> مقابل <span class="num">1:8</span> عند البالغين).</li>
+  <li>سرير مهد صغير، غطاء الحفاض.</li>
+  <li>سبع نقاط تشمل <strong>مؤخّرة الرأس</strong> — النقطة الأولى للضغط عند الرضّع بسبب حجم الرأس النسبي وليونة الجمجمة.</li>
+</ul>
+
+<h3>عناصر التحكّم</h3>
+<ul>
+  <li><strong>اضغط واسحب</strong> — تدوير الكاميرا حول الجسم.</li>
+  <li><strong>عجلة الماوس</strong> — تكبير/تصغير.</li>
+  <li><strong>إظهار التسميات / إخفاء التسميات</strong> — تبديل تسميات المناطق. توضع التسميات خارج ظلّ الجسم لتفادي حجبه.</li>
+  <li><strong>إعادة تعيين العرض</strong> (سهم دائري) — العودة إلى زاوية الكاميرا الافتراضية.</li>
+</ul>
+
+<h3>سلوك النقاط</h3>
+<p>كل نقطة تحوي قرصاً صلباً وتوهّجاً ناعماً. كلاهما ينبض بوتيرة وكثافة يتناسبان مع درجة الخطر:</p>
+<ul>
+  <li>خطر منخفض ← نبض بطيء وخافت.</li>
+  <li>متوسط ← نبض متوسّط.</li>
+  <li>مرتفع ← نبض سريع وساطع.</li>
+  <li>حرج ← نبض سريع جداً وحادّ.</li>
+</ul>
+<p>الألوان تتبع نطاق الخطر: أخضر (آمن)، كهرماني (مرتفع)، برتقالي (عالٍ)، أحمر (حرج).</p>
+
+<h3>نموذج ثلاثي الأبعاد مخصّص (اختياري)</h3>
+<p>لاستخدام نموذج طبي واقعي بدلاً من المانيكان التشريحي، ضع ملف glTF/GLB في <code>public/models/body.glb</code>. تفحص المنصّة وجود الملف عند التشغيل؛ إن وُجد يُحمَّل بدل النموذج الافتراضي. مصادر مُقترحة: MakeHuman، Blender Studio Base Meshes (CC0)، NIH 3D Print Exchange، Sketchfab CC0.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="rstt">
+<h2><span class="num">7</span> · الوقت الآمن المتبقّي للأنسجة</h2>
+
+<p>الرقم الأكثر أهميّة سريرياً على اللوحة. بدلاً من «هل الضغط مرتفع؟»، يجيب: <em>«كم من الوقت تتحمّل هذه الأنسجة الوضعية الحالية بأمان؟»</em>.</p>
+
+<h3>البطاقة</h3>
+<p>عدّاد تنازلي دائري يُظهر الدقائق المتبقّية حتى تعبر أعلى منطقة إلى نطاق الخطر المرتفع. اللون يتبع الرقم:</p>
+<ul>
+  <li><span class="badge-inline b-safe">آمن</span> — <span class="num">&gt; 45</span> دقيقة متبقّية.</li>
+  <li><span class="badge-inline b-warn">قريباً</span> — <span class="num">16</span> إلى <span class="num">45</span> دقيقة.</li>
+  <li><span class="badge-inline b-high">فوري</span> — <span class="num">1</span> إلى <span class="num">15</span> دقيقة.</li>
+  <li><span class="badge-inline b-crit">تصرّف الآن</span> — <span class="num">0</span> دقيقة.</li>
+</ul>
+
+<h3>لوحة «لماذا هذا الرقم؟»</h3>
+<p>قسم قابل للطيّ أسفل العدّاد. يعرض:</p>
+<ul>
+  <li><strong>الدقائق الأساسية</strong> عند الضغط الحالي (من منحنى Reswick-Rogers).</li>
+  <li><strong>كل مُعدِّل مُطبَّق</strong> مع عامله الضربي:
+    <ul>
+      <li>نطاق العمر (<span class="num">× 0.55</span> إلى <span class="num">× 1.00</span>).</li>
+      <li>نطاق BMI (<span class="num">× 0.70</span> إلى <span class="num">× 1.00</span>).</li>
+      <li>الجنس (<span class="num">× 0.98</span> بعد سنّ اليأس، وإلا محايد).</li>
+      <li>كل مرض قائم (<span class="num">× 0.60</span> إلى <span class="num">× 0.90</span>).</li>
+      <li>كل دواء (<span class="num">× 0.75</span> إلى <span class="num">× 0.95</span>).</li>
+      <li>كل علاج (<span class="num">× 0.70</span> إلى <span class="num">× 0.90</span>).</li>
+      <li>المناخ الدقيق الحيّ (حرارة الجلد، الرطوبة).</li>
+    </ul>
+  </li>
+  <li><strong>العامل الإجمالي</strong> و<strong>الدقائق النهائية</strong>.</li>
+</ul>
+
+<div class="callout">
+  <strong>مثال عملي.</strong> امرأة <span class="num">74</span> سنة، BMI <span class="num">22</span>، مصابة بالسكري وسلس البول، تتناول كورتيكوستيرويدات، وصلت ضغط منطقة العجز إلى <span class="num">85 mmHg</span> مع درجة جلد <span class="num">37.7 °C</span> ورطوبة <span class="num">68%</span>:<br />
+  الأساس <code>4200 / (85 − 32) = 79</code> دقيقة · العمر <span class="num">× 0.75</span> · السكري <span class="num">× 0.75</span> · السلس <span class="num">× 0.80</span> · الستيرويدات <span class="num">× 0.85</span> · الجلد <span class="num">&gt; 37.5 °C × 0.90</span> · الرطوبة <span class="num">68% × 0.85</span><br />
+  المُجمَّع = <strong><span class="num">0.29</span></strong> ← <strong><span class="num">23</span> دقيقة متبقّية</strong>.
+</div>
+
+<p>راجع القسم <span class="num">14</span> لاشتقاق الخوارزمية الكامل مع المراجع.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="risk">
+<h2><span class="num">8</span> · مؤشّر الخطر (<span class="num">5</span> محاور)</h2>
+
+<p>درجة من <span class="num">100</span> نقطة محسوبة على الجهاز (ليست من Claude) تُقدّم ملخّصاً سريعاً للخطر الإجمالي. تتفكّك إلى خمسة محاور قابلة للتفسير:</p>
+
+<table>
+  <tr><th>المحور</th><th>الحدّ الأقصى</th><th>مصدر التغيير</th></tr>
+  <tr><td>الضغط</td><td><span class="num">30</span></td><td>ذروة <span class="num">mmHg</span> بين المنطقتين.</td></tr>
+  <tr><td>عدم الحركة</td><td><span class="num">30</span></td><td>الدقائق منذ آخر تقليب مقابل هدف <span class="num">120</span> دقيقة.</td></tr>
+  <tr><td>الرطوبة</td><td><span class="num">15</span></td><td>الرطوبة النسبية <span class="num">&gt; 40%</span>.</td></tr>
+  <tr><td>الحرارة</td><td><span class="num">15</span></td><td>حرارة الجلد <span class="num">&gt; 37.5 °C</span> (أو <span class="num">&lt; 33 °C</span>).</td></tr>
+  <tr><td>عدم التوازن</td><td><span class="num">10</span></td><td>ميل مركز الضغط <span class="num">&gt; 0.4</span> (سرير مشغول).</td></tr>
+</table>
+
+<p>بطاقة الخطر تعرض المجموع كحلقة تقدّم دائرية وكل محور كشريط أفقي ليرى المُعالج <em>لماذا</em> الدرجة بهذا المستوى. عتبات النطاقات:</p>
+<ul>
+  <li><span class="badge-inline b-safe">منخفض</span> · <span class="num">0–24</span></li>
+  <li><span class="badge-inline b-warn">متوسط</span> · <span class="num">25–49</span></li>
+  <li><span class="badge-inline b-high">مرتفع</span> · <span class="num">50–74</span></li>
+  <li><span class="badge-inline b-crit">حرج</span> · <span class="num">75–100</span></li>
+</ul>
+
+<h3>مسار الخطر</h3>
+<p>بطاقة منفصلة تُسقط منطقة الخطر الأعلى إلى الأمام عبر خمسة آفاق: الآن، <span class="num">15</span> دقيقة، <span class="num">1</span> ساعة، <span class="num">3</span> ساعات، <span class="num">6</span> ساعات. تفترض بقاء الوضعية الحالية. علامة عمودية متقطّعة تُشير إلى موعد التقليب المُوصى به.</p>
+
+<h3>الخطر حسب منطقة الجسم</h3>
+<p>تفصيل لكل منطقة (العجز، الورك الأيسر، الورك الأيمن، الكعب الأيسر، الكعب الأيمن، الكتفان، إضافة إلى مؤخّرة الرأس للرضّع). كل صفّ يعرض شريطاً ملوّناً + الدرجة العددية. لوحة قابلة للطيّ «لماذا الخطر بهذا المستوى» تُبيّن المساهمات الأساسيّة.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="ai">
+<h2><span class="num">9</span> · توصيات الذكاء الاصطناعي (Claude)</h2>
+
+<p>تستدعي المنصّة نموذج Claude من Anthropic عند الطلب لتوليد سرد تفسيري بمستوى سريري للّقطة الحاليّة من المستشعرات.</p>
+
+<h3>كيف تُشغَّل</h3>
+<div class="step"><span class="n">1</span><div>افتح لوحة القيادة أو صفحة <code>/ai</code>.</div></div>
+<div class="step"><span class="n">2</span><div>انتظر قراءة واحدة على الأقل من المستشعرات (ثانية أو ثانيتين).</div></div>
+<div class="step"><span class="n">3</span><div>اضغط <strong>اسأل Claude</strong> على بطاقة الذكاء.</div></div>
+<div class="step"><span class="n">4</span><div>يتحوّل الزرّ إلى «يتم التحليل…» لمدة <span class="num">3–8</span> ثوانٍ حتى تستجيب الواجهة.</div></div>
+<div class="step"><span class="n">5</span><div>الاستجابة تظهر في مكانها. اضغط <strong>إعادة التحليل</strong> لإعادة التنفيذ على اللقطة الأحدث.</div></div>
+
+<h3>ماذا تحصل عليه</h3>
+<p>استجابة JSON مُنظّمة، تُفصّل كالتالي:</p>
+<ul>
+  <li><strong>Summary</strong> — فقرة واحدة تشرح المشهد السريري الحالي.</li>
+  <li><strong>Reasoning</strong> — حتى <span class="num">6</span> نقاط قصيرة تشير إلى قيم مقاسة محدّدة.</li>
+  <li><strong>Actions</strong> — حتى <span class="num">6</span> خطوات تالية موصى بها، لكل واحدة نبرة (info / warn / danger).</li>
+  <li><strong>راية التصعيد</strong> — تظهر كشارة حمراء عندما يرى النموذج أن المريض بحاجة إلى طبيب الآن.</li>
+</ul>
+
+<h3>اللغة</h3>
+<p>السرد يحترم لغة الواجهة المُختارة. بدّل إلى العربية أو الكورية بزرّ اللغة في الترويسة، اضغط <strong>إعادة التحليل</strong>، وكل حقل ظاهر يعود بتلك اللغة. القيم العدديّة وأسماء المستشعرات (<span class="num">FSR, MLX90614, DHT22</span>) والوحدات (<span class="num">mmHg, °C, %RH</span>) تبقى بالكتابة اللاتينية للوضوح.</p>
+
+<h3>اختيار النموذج</h3>
+<p>الافتراضي <code>claude-sonnet-4-6</code>. يمكن التغيير بتعديل متغيّر البيئة <code>ANTHROPIC_MODEL</code> إلى أي نموذج Claude حالي (مثلاً <code>claude-opus-4-7</code> لذكاء أعلى بتكلفة أعلى).</p>
+
+<h3>التكلفة</h3>
+<p>كل طلب هو تقريباً <span class="num">~1500</span> رمز إدخال (مُخزَّن في الغالب بين الاستدعاءات) و<span class="num">~600</span> رمز إخراج. بأسعار Sonnet <span class="num">4.6</span>، الطلب الواحد ≈ <strong><span class="num">0.01</span> دولار</strong>. <span class="num">100</span> تحليل يومياً ≈ <span class="num">30</span> دولاراً شهرياً.</p>
+
+<div class="callout warn">
+  <strong>ملاحظة خصوصيّة.</strong> اللقطة الحاليّة من المستشعرات وبيانات المريض تُرسل إلى Anthropic كلما ضغطت «اسأل Claude». لا تضغط إن كانت بيانات المريض لا يجوز مشاركتها مع طرف ثالث.
+</div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="admin">
+<h2><span class="num">10</span> · لوحة المشرف</h2>
+
+<p>ظاهرة فقط للحسابات التي دورها <code>admin</code>. الوصول عبر <code>/admin</code>.</p>
+
+<h3>شريط المؤشّرات (KPI)</h3>
+<p>أربع بلاطات في الأعلى:</p>
+<ul>
+  <li><strong>إجمالي المرضى</strong> — عدد الحسابات غير الإداريّة.</li>
+  <li><strong>نشط (<span class="num">5</span> د)</strong> — المرضى الذين آخر سجلّ لهم خلال <span class="num">5</span> دقائق.</li>
+  <li><strong>خطر مرتفع</strong> — المرضى الذين درجتهم الحاليّة <span class="num">≥ 50</span>.</li>
+  <li><strong>متوسّط الخطر</strong> — المتوسّط عبر جميع المرضى.</li>
+</ul>
+<p>يتحدّث تلقائياً كل <span class="num">10</span> ثوانٍ للحفاظ على أرقام حديثة.</p>
+
+<h3>قائمة المرضى</h3>
+<p>قائمة كاملة بالمرضى، صفّ لكل واحد. كل صفّ يُظهر:</p>
+<ul>
+  <li>الصورة + الاسم + <code>@username</code> + العمر.</li>
+  <li>عدد العيّنات (كم سجلّاً لهذا المريض).</li>
+  <li>درجة الخطر الحاليّة بلون النطاق.</li>
+  <li>وقت آخر مشاهدة ومؤشّر اتصال أخضر (نشط خلال <span class="num">5</span> د).</li>
+  <li>زرّ <strong>عرض</strong> — يفتح لوحة ذلك المريض.</li>
+  <li>زرّ <strong>حذف</strong> — يزيل المريض وسجلاته (يطلب تأكيداً).</li>
+</ul>
+<p>حقل بحث يُصفّي بالاسم أو المستخدم أو البريد.</p>
+
+<h3>مشاهدة مريض آخر (Impersonation)</h3>
+<p>عند ضغط المشرف على <strong>عرض</strong> في صفّ مريض، تفتح اللوحة مع <code>?patient=&lt;id&gt;</code> في المسار. تظهر شارة <strong>«يعرض المريض · [الاسم]»</strong> بلون سماوي في أعلى كل بطاقة، مع زرّ <strong>«العودة إلى لوحة المشرف»</strong>.</p>
+<p>كل البيانات على الصفحة — ضغط، خطر، سرد الذكاء الاصطناعي، سجلات التحليل — مربوطة بذلك المريض. تُكتب السجلّات باسمه لا باسم المشرف.</p>
+<p>المرضى لا يستطيعون استخدام <code>?patient=</code> لمشاهدة بيانات غيرهم — يُحذف البارامتر من الرابط ويظلّون محصورين بجلستهم.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="analysis">
+<h2><span class="num">11</span> · تحليل الجلسة والتصدير</h2>
+
+<p>الوصول عبر <code>/analysis</code>. يعرض الاتجاهات التاريخيّة من سجلّ جلسة المريض.</p>
+
+<h3>نطاق التاريخ</h3>
+<p>حقلا تاريخ في الأعلى. الافتراضي آخر <span class="num">7</span> أيام. غيّرهما لأي مدى؛ تُعاد الرسوم والمؤشّرات.</p>
+
+<h3>بلاطات المؤشّرات</h3>
+<table>
+  <tr><th>البلاطة</th><th>المعنى</th></tr>
+  <tr><td>عدد العيّنات</td><td>إجمالي الصفوف في المدى المختار.</td></tr>
+  <tr><td>متوسّط ذروة <span class="num">mmHg</span></td><td>متوسّط الأعلى بين الضغطين.</td></tr>
+  <tr><td>أقصى <span class="num">mmHg</span></td><td>أعلى قراءة فرديّة.</td></tr>
+  <tr><td>التقليب</td><td>إجمالي أحداث التقليب المكتشفة.</td></tr>
+  <tr><td>متوسّط الخطر</td><td>متوسّط مؤشّر الـ<span class="num">100</span> نقطة.</td></tr>
+  <tr><td>نسبة الإشغال</td><td>نسبة العيّنات التي كان فيها السرير مشغولاً.</td></tr>
+</table>
+
+<h3>الرسوم البيانيّة</h3>
+<ul>
+  <li><strong>الضغط عبر الزمن</strong> — منطقتا اليسار واليمين بـ<span class="num">mmHg</span>.</li>
+  <li><strong>مؤشّر الخطر</strong> — منطقة من <span class="num">0</span> إلى <span class="num">100</span>.</li>
+  <li><strong>حرارة الجسم والرطوبة</strong> — رسم بمحورَين.</li>
+  <li><strong>مركز الضغط</strong> — من <span class="num">−1</span> (يسار تماماً) إلى <span class="num">+1</span> (يمين تماماً).</li>
+</ul>
+
+<h3>التصدير</h3>
+<ul>
+  <li><strong>CSV</strong> — يُنزّل ملفّاً بأعمدة: الطابع الزمني، ضغط اليسار، ضغط اليمين، cop، عدد التقليبات، درجة حرارة الجسم، الرطوبة، الخطر، الإشغال. اسم الملف يشمل اسم المستخدم وتاريخ اليوم.</li>
+  <li><strong>PDF</strong> — يفتح مربّع طباعة المتصفح. اختر «حفظ كـPDF» كوجهة.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="connect">
+<h2><span class="num">12</span> · اتصال الجهاز (BLE)</h2>
+
+<p>الوصول عبر <code>/connect</code>. الجسر بين المنصّة ومنظومة <span class="num">ESP32</span>.</p>
+
+<h3>الاقتران عبر بلوتوث منخفض الطاقة</h3>
+<p>متاح في Chrome وEdge وOpera على سطح المكتب وأندرويد. <strong>غير متاح على iOS Safari</strong> — Apple لم تدعم Web Bluetooth. تظهر شارة تحذير عند غياب الدعم.</p>
+<div class="step"><span class="n">1</span><div>احرق الفيرموير من <code>firmware/BedsorePredictorBLE.ino</code> على <span class="num">ESP32</span> (راجع القسم <span class="num">17</span>).</div></div>
+<div class="step"><span class="n">2</span><div>شغّل <span class="num">ESP32</span> ضمن نطاق البلوتوث (~<span class="num">10 m</span>).</div></div>
+<div class="step"><span class="n">3</span><div>اضغط <strong>اقتران الجهاز</strong>. المتصفح يفتح مربّع اقتران أصلي.</div></div>
+<div class="step"><span class="n">4</span><div>اختر <code>UlcerShield-01</code> من القائمة. مؤشّر الاتصال يصبح أخضر.</div></div>
+<div class="step"><span class="n">5</span><div>يبدأ البثّ الحيّ للضغط والعلامات الحيوية وأحداث التقليب في كل التبويبات المفتوحة.</div></div>
+
+<h3>المحاكاة</h3>
+<p>البطاقة اليمنى. تبثّ بيانات تركيبيّة بمعدّل <span class="num">1 Hz</span> — تغيّرات وضعية دورية، ارتفاع حرارة الجلد ببطء، انجراف الرطوبة. استخدمها للعرض دون أجهزة أو خارج نطاق الجهاز. اضغط <strong>بدء المحاكاة</strong> أو <strong>إعادة تشغيل المحاكاة</strong>.</p>
+
+<h3>مرجع خدمة GATT</h3>
+<table>
+  <tr><th>الخصائص</th><th>UUID (مختصر)</th><th>الاتجاه</th><th>الغرض</th></tr>
+  <tr><td>State</td><td><code>fd01</code></td><td>Notify</td><td>حزم JSON، واحدة كل ثانية، تحوي قراءات المنطقتين وCoP والتقليب والعلامات الحيوية.</td></tr>
+  <tr><td>Command</td><td><code>fd02</code></td><td>Write</td><td>أوامر ASCII: <code>cal_zero, cal_a, cal_b, reset</code>.</td></tr>
+  <tr><td>Event</td><td><code>fd03</code></td><td>Notify</td><td>حزم أحداث JSON (تقليب مكتشف، معايرة مكتملة).</td></tr>
+</table>
+<p>UUID الكامل: <code>0000fd00-1212-efde-1523-785feabcd123</code>.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="profile">
+<h2><span class="num">13</span> · إدارة الحساب</h2>
+
+<p>الوصول عبر <code>/profile</code> أو من شريحة المستخدم في الترويسة (القائمة ← <em>تعديل الملف</em>).</p>
+
+<h3>الحقول القابلة للتعديل</h3>
+<ul>
+  <li>الصورة الشخصية (رفع؛ يُعاد ضبط الحجم إلى <span class="num">256px</span>).</li>
+  <li>الاسم الكامل.</li>
+  <li>البريد والهاتف.</li>
+  <li>العمر والجنس والطول والوزن.</li>
+  <li>الملاحظات السريرية.</li>
+</ul>
+
+<h3>غير قابل للتعديل من صفحة الحساب</h3>
+<ul>
+  <li>اسم المستخدم (ثابت منذ التسجيل).</li>
+  <li>نوع المريض (بالغ/رضيع).</li>
+  <li>الأمراض والأدوية والعلاجات (حالياً يتم تعيينها عند التسجيل فقط — قريباً).</li>
+</ul>
+
+<h3>تسجيل الخروج</h3>
+<p>من شريحة المستخدم في الترويسة ← <strong>تسجيل الخروج</strong>، أو زرّ <em>تسجيل الخروج</em> في صفحة الحساب. هذا يمسح الجلسة المحلية (لا يحذف سجلّ المريض).</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="algorithm">
+<h2><span class="num">14</span> · الخوارزمية بالتفصيل</h2>
+
+<p>حسابات الوقت الآمن المتبقّي والخطر المُخصّص مستمدّة من أعمال سريرية منشورة. الاشتقاق الكامل مع المراجع في <code>docs/algorithm.md</code>.</p>
+
+<h3>المنحنى الأساسي</h3>
+<p>منحنى ضغط–زمن عكسي، مُعاير مقابل Landis (<span class="num">1930</span>) وKosiak (<span class="num">1959, 1961</span>) وReswick &amp; Rogers (<span class="num">1976</span>):</p>
+<pre>baseSafeMin(P) = K / max(1, P − P_cap)      (bounded at ceiling)</pre>
+
+<table>
+  <tr><th>المُعامل</th><th>بالغ</th><th>رضيع (<span class="num">&lt; 2</span> سنة)</th></tr>
+  <tr><td>ضغط إغلاق الشعيرات P_cap</td><td><span class="num">32 mmHg</span></td><td><span class="num">20 mmHg</span></td></tr>
+  <tr><td>ثابت تحمّل الأنسجة K</td><td><span class="num">4200</span></td><td><span class="num">2500</span></td></tr>
+  <tr><td>الحدّ الأقصى (دقائق آمنة)</td><td><span class="num">240</span></td><td><span class="num">180</span></td></tr>
+</table>
+
+<h3>تسلسل التخصيص</h3>
+<p>كل مُعدِّل ضربي. الحاصل مُقيَّد بـ<span class="num">[0.20, 1.20]</span>. الأوزان مستمدّة من مقياسَي Braden (<span class="num">1987</span>) وWaterlow (<span class="num">1985</span>):</p>
+
+<h4>مُعامل العمر</h4>
+<table>
+  <tr><td><span class="num">&lt; 2</span> سنة</td><td><span class="num">× 0.55</span></td><td>جلد غير ناضج، حركة محدودة.</td></tr>
+  <tr><td><span class="num">2–5</span></td><td><span class="num">× 0.70</span></td><td>كولاجين قيد التطوّر.</td></tr>
+  <tr><td><span class="num">6–12</span></td><td><span class="num">× 0.80</span></td><td>&nbsp;</td></tr>
+  <tr><td><span class="num">13–17</span></td><td><span class="num">× 0.95</span></td><td>&nbsp;</td></tr>
+  <tr><td><span class="num">18–40</span></td><td><span class="num">× 1.00</span></td><td>الفئة المرجعيّة.</td></tr>
+  <tr><td><span class="num">41–64</span></td><td><span class="num">× 0.90</span></td><td>ترقّق مبكر للجلد.</td></tr>
+  <tr><td><span class="num">65–79</span></td><td><span class="num">× 0.75</span></td><td>انخفاض التروية.</td></tr>
+  <tr><td><span class="num">≥ 80</span></td><td><span class="num">× 0.55</span></td><td>جلد هشّ.</td></tr>
+</table>
+
+<h4>مُعامل BMI</h4>
+<table>
+  <tr><td><span class="num">&lt; 18.5</span> (نحيف)</td><td><span class="num">× 0.75</span></td></tr>
+  <tr><td><span class="num">18.5–24.9</span> (طبيعي)</td><td><span class="num">× 1.00</span></td></tr>
+  <tr><td><span class="num">25–29.9</span> (زيادة وزن)</td><td><span class="num">× 0.95</span></td></tr>
+  <tr><td><span class="num">30–34.9</span> (سمنة I)</td><td><span class="num">× 0.85</span></td></tr>
+  <tr><td><span class="num">≥ 35</span> (سمنة II+)</td><td><span class="num">× 0.70</span></td></tr>
+</table>
+
+<h4>مُعاملات الأمراض</h4>
+<table>
+  <tr><td>السكري</td><td><span class="num">× 0.75</span></td></tr>
+  <tr><td>مرض الأوعية الطرفية</td><td><span class="num">× 0.65</span></td></tr>
+  <tr><td>أمراض القلب</td><td><span class="num">× 0.85</span></td></tr>
+  <tr><td>الفشل الكلوي</td><td><span class="num">× 0.85</span></td></tr>
+  <tr><td>سوء التغذية</td><td><span class="num">× 0.70</span></td></tr>
+  <tr><td>اعتلال الأعصاب / إصابة الحبل الشوكي</td><td><span class="num">× 0.60</span></td></tr>
+  <tr><td>سلس البول/البراز</td><td><span class="num">× 0.80</span></td></tr>
+  <tr><td>الخرف</td><td><span class="num">× 0.85</span></td></tr>
+  <tr><td>سرطان نشط</td><td><span class="num">× 0.85</span></td></tr>
+</table>
+
+<h4>مُعاملات الأدوية</h4>
+<table>
+  <tr><td>كورتيكوستيرويدات (مزمنة)</td><td><span class="num">× 0.85</span></td></tr>
+  <tr><td>قابضات الأوعية</td><td><span class="num">× 0.75</span></td></tr>
+  <tr><td>مضادّات التخثّر</td><td><span class="num">× 0.90</span></td></tr>
+  <tr><td>مهدّئات مزمنة</td><td><span class="num">× 0.80</span></td></tr>
+  <tr><td>مضادّات التهاب لاستيرويدية مزمنة</td><td><span class="num">× 0.95</span></td></tr>
+</table>
+
+<h4>مُعاملات العلاجات</h4>
+<table>
+  <tr><td>تنفّس صناعي</td><td><span class="num">× 0.70</span></td></tr>
+  <tr><td>غسيل كلوي</td><td><span class="num">× 0.85</span></td></tr>
+  <tr><td>علاج كيميائي (نشط)</td><td><span class="num">× 0.75</span></td></tr>
+  <tr><td>علاج إشعاعي</td><td><span class="num">× 0.80</span></td></tr>
+  <tr><td>جبس / شدّ</td><td><span class="num">× 0.75</span></td></tr>
+  <tr><td>أنبوب تغذية</td><td><span class="num">× 0.90</span></td></tr>
+</table>
+
+<h4>مُعاملات المناخ الدقيق الحيّ</h4>
+<ul>
+  <li>حرارة الجلد <span class="num">&gt; 37.5 °C</span> ← <span class="num">× 0.90</span>.</li>
+  <li>الرطوبة <span class="num">65–75%</span> ← <span class="num">× 0.85</span>.</li>
+  <li>الرطوبة <span class="num">&gt; 75%</span> ← <span class="num">× 0.75</span>.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="privacy">
+<h2><span class="num">15</span> · الخصوصيّة والبيانات</h2>
+
+<ul>
+  <li><strong>كل سجلات المرضى تعيش في المتصفّح.</strong> IndexedDB عبر Dexie. لا شيء يُرفع إلى خادم مركزي.</li>
+  <li><strong>سجلّات الجلسة مربوطة بمريض واحد.</strong> رسوم التحليل تعرض فقط بيانات المريض النشط.</li>
+  <li><strong>جلسات المرضى لا ترى مرضى آخرين.</strong> بارامتر <code>?patient=</code> يُحذف للجلسات غير الإدارية.</li>
+  <li><strong>جلسات المشرف ترى كل شيء.</strong> عند مشاهدة مريض عبر <code>?patient=&lt;id&gt;</code>، تُكتب سجلّات الجلسة باسم ذلك المريض.</li>
+  <li><strong>استدعاء Claude يُرسل اللقطة الحاليّة وبيانات المريض إلى Anthropic.</strong> لا تُرسل سجلات تاريخيّة. راجع ملاحظة الخصوصيّة في القسم <span class="num">9</span>.</li>
+  <li><strong>الجلسة تنتهي عند تسجيل الخروج.</strong> السجلّات محفوظة؛ رمز الجلسة في الذاكرة يُمسح.</li>
+  <li><strong>عبر الأجهزة.</strong> نظراً لكون السجلّات لكل متصفّح، لا تتزامن بين الأجهزة. لنقلها، استخدم تصدير CSV في صفحة التحليل.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="i18n">
+<h2><span class="num">16</span> · اللغات والسمات</h2>
+
+<h3>اللغات</h3>
+<p>ثلاث لغات: الإنجليزية، العربية (باتجاه من اليمين إلى اليسار)، والكورية. كل نصّ ظاهر — تسميات، أزرار، تلميحات، رسائل toast، وسائل الرسوم، سرد الذكاء الاصطناعي — يحترم الاختيار.</p>
+<p>غيّر اللغة بزرّ الكرة الأرضية في الترويسة. الاختيار يُحفظ في <code>localStorage</code> بين الزيارات.</p>
+
+<h3>السمات</h3>
+<p>سمتان: فاتحة وداكنة. بدّل بزرّ الشمس/القمر. تُحفظ بين الزيارات.</p>
+
+<h3>حجم النص</h3>
+<p>أربعة أحجام: S (<span class="num">14px</span>)، M (<span class="num">15.5px</span>)، L (<span class="num">17px</span>)، XL (<span class="num">19px</span>). تدوير بزرّ «T». يُحفظ بين الزيارات.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="firmware">
+<h2><span class="num">17</span> · فيرموير ESP32 (BLE)</h2>
+
+<p>التنفيذ المرجعي في <code>firmware/BedsorePredictorBLE.ino</code>.</p>
+
+<h3>العتاد</h3>
+<ul>
+  <li>لوحة تطوير <span class="num">ESP32</span> (أي إصدار بدعم BLE).</li>
+  <li>مقاومان حسّاسان للقوّة (<span class="num">FSR402</span> أو ما يماثل) مع مقسّم فولط <span class="num">10 kΩ</span>. متّصلان بـ<span class="num">GPIO 34</span> (يسار) و<span class="num">GPIO 35</span> (يمين).</li>
+  <li>مستشعر رطوبة <span class="num">DHT22</span> على <span class="num">GPIO 4</span> مع مقاومة سحب <span class="num">10 kΩ</span>.</li>
+  <li>مستشعر حرارة <span class="num">MLX90614</span> بالأشعة تحت الحمراء عبر I²C (<span class="num">SDA = GPIO 21, SCL = GPIO 22</span>).</li>
+</ul>
+
+<h3>المكتبات المطلوبة (Arduino IDE)</h3>
+<ul>
+  <li>NimBLE-Arduino (h2zero).</li>
+  <li>ArduinoJson (Benoit Blanchon).</li>
+  <li>DHT sensor library (Adafruit).</li>
+  <li>Adafruit MLX90614 Library.</li>
+</ul>
+
+<h3>إجراء المعايرة</h3>
+<div class="step"><span class="n">1</span><div>شغّل <span class="num">ESP32</span> ولا حِمل على أي وسادة.</div></div>
+<div class="step"><span class="n">2</span><div>اقرن الجهاز مع المنصّة.</div></div>
+<div class="step"><span class="n">3</span><div>اضغط <strong>تصفير</strong> على اللوحة. يُسجّل أساس المقاومة دون حِمل.</div></div>
+<div class="step"><span class="n">4</span><div>ضع كتلة <span class="num">1 kg</span> معلومة على قرص صلب فوق الوسادة اليسرى.</div></div>
+<div class="step"><span class="n">5</span><div>اضغط <strong>معايرة اليسار</strong>. يُسجّل ثابت القوة/المقاومة لـ<span class="num">FSR A</span>.</div></div>
+<div class="step"><span class="n">6</span><div>كرّر للوسادة اليمنى بـ<strong>معايرة اليمين</strong>.</div></div>
+<div class="step"><span class="n">7</span><div>الجهاز الآن مُعاير. الثوابت مخزّنة في الذاكرة حتى إعادة التشغيل.</div></div>
+
+<h3>أوامر المنفذ التسلسلي (<span class="num">115200</span> baud)</h3>
+<p>متاحة إلى جانب أوامر BLE:</p>
+<ul>
+  <li><code>c</code> — معايرة تصفير.</li>
+  <li><code>1</code> — معايرة كتلة، المنطقة A.</li>
+  <li><code>2</code> — معايرة كتلة، المنطقة B.</li>
+  <li><code>r</code> — إعادة عدّاد التقليب والجرعات.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="deploying">
+<h2><span class="num">18</span> · نشر المنصّة</h2>
+
+<p>دليل النشر الكامل في <code>platform/DEPLOY.md</code>. النسخة المختصرة:</p>
+
+<h3>Vercel (المُوصى به)</h3>
+<div class="step"><span class="n">1</span><div>ادفع المستودع إلى GitHub.</div></div>
+<div class="step"><span class="n">2</span><div>اذهب إلى <a href="https://vercel.com/new">vercel.com/new</a>، استورد المستودع.</div></div>
+<div class="step"><span class="n">3</span><div>اضبط <strong>Root Directory</strong> إلى <code>platform</code>.</div></div>
+<div class="step"><span class="n">4</span><div>أضف متغيّرات البيئة:
+    <ul>
+      <li><code>ANTHROPIC_API_KEY</code> — مفتاح Claude الخاصّ بك.</li>
+      <li><code>ANTHROPIC_MODEL</code> — معرّف النموذج (الافتراضي <code>claude-sonnet-4-6</code>).</li>
+    </ul>
+</div></div>
+<div class="step"><span class="n">5</span><div>اضغط <strong>Deploy</strong>. كل <code>git push</code> لاحق يُطلق نشراً تلقائياً.</div></div>
+
+<h3>نطاق مخصّص</h3>
+<p>Vercel Dashboard ← Settings ← Domains ← Add. وجّه DNS كما هو مُوضَّح. يُصدر Vercel شهادة TLS تلقائياً. ثم اضبط <code>NEXT_PUBLIC_SITE_URL</code> إلى نطاقك ليستخدم الروابط القانونيّة وصور OG هذا النطاق.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="troubleshooting">
+<h2><span class="num">19</span> · حلّ المشكلات</h2>
+
+<h4>بطاقة الذكاء الاصطناعي تُرجع «AI request failed»</h4>
+<p>تحقّق:</p>
+<ul>
+  <li><strong>HTTP <span class="num">501</span></strong> — <code>ANTHROPIC_API_KEY</code> غير مضبوط في الخادم. أضفه في Vercel ← Settings ← Environment Variables ثم أعد النشر.</li>
+  <li><strong>HTTP <span class="num">401</span></strong> — المفتاح غير صالح أو تمّ تدويره. أنشئ مفتاحاً جديداً في console.anthropic.com وحدّث المتغيّر.</li>
+  <li><strong>HTTP <span class="num">429</span></strong> — تجاوزت الحدّ. انتظر قليلاً وأعد المحاولة.</li>
+</ul>
+
+<h4>زرّ «اقتران الجهاز» معطّل</h4>
+<p>متصفّحك لا يدعم Web Bluetooth. استخدم Chrome أو Edge أو Opera على سطح المكتب أو أندرويد. iOS Safari لا يدعم Web Bluetooth.</p>
+
+<h4>اللوحة تُظهر «لا توجد بيانات حيّة»</h4>
+<p>يجب أن تبدأ المحاكاة تلقائياً في أول زيارة. إن لم يظهر شيء، اذهب إلى <code>/connect</code> واضغط <strong>بدء المحاكاة</strong>.</p>
+
+<h4>التسميات تُغطّي الجسم ثلاثي الأبعاد</h4>
+<p>التسميات مخفيّة افتراضياً. إن فعّلتها وأصبحت متداخلة، اضغط <strong>إخفاء التسميات</strong> — النقاط النابضة وحدها تنقل نطاق الخطر.</p>
+
+<h4>صفحة التحليل تُظهر «لا توجد بيانات بعد»</h4>
+<p>تُحفظ السجلّات كل <span class="num">5</span> ثوانٍ أثناء فتح اللوحة. انتظر دقيقة بعد فتح اللوحة ثم عد إلى التحليل.</p>
+
+<h4>سرد الذكاء الاصطناعي بلغة غير المطلوبة</h4>
+<p>اضغط <strong>إعادة التحليل</strong> بعد تبديل اللغة. الاستجابات السابقة مخزّنة مؤقتاً في المتصفّح ولا تُترجم تلقائياً.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="references">
+<h2><span class="num">20</span> · المراجع</h2>
+
+<ol>
+  <li>Landis EM. <em>Micro-injection studies of capillary blood pressure in human skin.</em> Heart, <span class="num">1930</span>.</li>
+  <li>Kosiak M. <em>Etiology and pathology of ischemic ulcers.</em> Arch Phys Med Rehabil, <span class="num">1959</span>.</li>
+  <li>Reswick JB, Rogers JE. <em>Experience at Rancho Los Amigos hospital with devices and techniques to prevent pressure sores.</em> Bedsore Biomechanics, <span class="num">1976</span>.</li>
+  <li>Bergstrom N, Braden BJ, Laguzza A, Holman V. <em>The Braden scale for predicting pressure sore risk.</em> Nurs Res, <span class="num">1987</span>.</li>
+  <li>Waterlow J. <em>A risk assessment card.</em> Nursing Times, <span class="num">1985</span>.</li>
+  <li>Baharestani MM. <em>An overview of neonatal and pediatric wound care knowledge and considerations.</em> Ostomy Wound Manage, <span class="num">2007</span>.</li>
+  <li>Willock J, Baharestani MM, Anthony D. <em>A risk assessment scale for pressure ulcers in children.</em> Nurs Times, <span class="num">2007</span>.</li>
+  <li>National Pressure Injury Advisory Panel, EPUAP, PPPIA. <em>Prevention and Treatment of Pressure Ulcers/Injuries: Clinical Practice Guideline.</em> 3rd ed., <span class="num">2019</span>.</li>
+  <li>Gefen A. <em>Reswick and Rogers pressure–time curve for pressure ulcer risk.</em> Nurs Stand, <span class="num">2009</span>.</li>
+</ol>
+</section>
+
+<footer>
+  UlcerShield AI · منصّة الوقاية من قرحة الفراش · نموذج بحثي · ليس جهازاً طبياً معتمداً.<br />
+  <a href="./user-guide-en.html">النسخة الإنجليزية</a> · <a href="/">المنصّة الحيّة</a>
+</footer>
+
+</main>
+</body>
+</html>

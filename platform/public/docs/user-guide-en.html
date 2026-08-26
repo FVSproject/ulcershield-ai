@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UlcerShield AI · User Guide (English)</title>
+<style>
+  :root {
+    --ink: #0e2540;
+    --ink-2: #385274;
+    --muted: #6b8199;
+    --line: #dbe4ef;
+    --brand: #0891b2;
+    --accent: #22d3ee;
+    --safe: #10b981;
+    --warn: #f59e0b;
+    --high: #f97316;
+    --crit: #ef4444;
+    --page-max: 780px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--ink);
+    font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    background: #f4f7fb;
+  }
+  main { max-width: var(--page-max); margin: 0 auto; padding: 56px 48px; background: white; box-shadow: 0 30px 80px -20px rgba(15,23,42,.15); }
+  h1, h2, h3, h4 { color: var(--ink); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+  h1 { font-size: 34px; margin: 0 0 6px; }
+  h2 { font-size: 24px; margin: 48px 0 12px; padding-bottom: 8px; border-bottom: 2px solid var(--brand); page-break-after: avoid; break-after: avoid; }
+  h3 { font-size: 18px; margin: 28px 0 8px; color: var(--brand); page-break-after: avoid; break-after: avoid; }
+  h4 { font-size: 15px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
+  p { margin: 0 0 10px; }
+  ul, ol { margin: 0 0 12px; padding-left: 22px; }
+  li { margin: 3px 0; }
+  code, kbd { font-family: "SF Mono", Consolas, monospace; font-size: 0.88em; background: #eef4fb; padding: 1px 6px; border-radius: 4px; border: 1px solid #e2ecf5; color: var(--brand); }
+  pre { background: #0e2540; color: #dfe8f4; padding: 14px 16px; border-radius: 8px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
+  a { color: var(--brand); text-decoration: none; border-bottom: 1px dotted var(--brand); }
+  hr { border: 0; height: 1px; background: var(--line); margin: 30px 0; }
+  .lede { color: var(--ink-2); font-size: 15px; margin-top: 4px; }
+  .cover { text-align: center; padding: 40px 0 24px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .cover .brand { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .cover .badge { display: inline-block; background: linear-gradient(135deg,#22d3ee,#0b3d63); color: white; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; padding: 5px 14px; border-radius: 999px; font-weight: 700; }
+  .cover h1 { font-size: 40px; margin: 8px 0 6px; }
+  .cover .lede { font-size: 16px; max-width: 520px; margin: 6px auto 0; }
+  .toc { background: #f4f7fb; border: 1px solid var(--line); border-radius: 8px; padding: 20px 24px; margin: 20px 0 36px; }
+  .toc h2 { border: none; margin: 0 0 10px; font-size: 16px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .toc ol { padding-left: 20px; margin: 0; column-count: 2; column-gap: 24px; }
+  .toc li { margin: 3px 0; break-inside: avoid; font-size: 13.5px; }
+  .callout { border-left: 3px solid var(--brand); background: #eef8fc; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 14px 0; font-size: 14px; }
+  .callout.warn { border-color: var(--warn); background: #fef7e6; }
+  .callout.danger { border-color: var(--crit); background: #fdecec; }
+  .callout.tip { border-color: var(--safe); background: #eafaf3; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; font-size: 13.5px; }
+  th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f4f7fb; font-weight: 700; color: var(--ink); }
+  .kbd { display: inline-block; background: white; border: 1px solid var(--line); box-shadow: 0 1px 0 #cbd5e1; padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--ink-2); }
+  .section { page-break-before: auto; }
+  .step { display: grid; grid-template-columns: 32px 1fr; gap: 14px; margin: 10px 0; }
+  .step .n { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--brand); color: white; font-weight: 700; font-size: 12.5px; }
+  .badge-inline { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-right: 4px; }
+  .b-safe { background: #d1f5e5; color: #045c3d; }
+  .b-warn { background: #fdf1cf; color: #755100; }
+  .b-high { background: #fddec6; color: #7a3400; }
+  .b-crit { background: #fbd6d6; color: #7a0e0e; }
+  .b-brand { background: #d0f2fa; color: #0e6a80; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); text-align: center; }
+  .print-cta { position: sticky; top: 0; background: #0e2540; color: white; padding: 10px 20px; text-align: center; font-size: 13px; z-index: 10; }
+  .print-cta button { background: var(--accent); color: #0e2540; border: none; padding: 6px 14px; border-radius: 999px; font-weight: 700; cursor: pointer; margin-left: 10px; }
+
+  @media print {
+    body { background: white; }
+    main { box-shadow: none; padding: 0; max-width: none; }
+    .print-cta { display: none; }
+    h2 { page-break-before: auto; break-before: auto; }
+    h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+    pre, .callout, table, .step { page-break-inside: avoid; break-inside: avoid; }
+    a { color: var(--brand); border: none; }
+    a[href]::after { content: ""; }
+    @page { margin: 18mm 15mm; }
+  }
+</style>
+</head>
+<body>
+
+<div class="print-cta">
+  Tip: press <span class="kbd">Ctrl</span> + <span class="kbd">P</span> to save this guide as PDF.
+  <button onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<main>
+
+<div class="cover">
+  <div class="brand">
+    <span class="badge">UlcerShield AI · User Guide</span>
+  </div>
+  <h1>Bedsore Prevention Platform</h1>
+  <p class="lede">AI-Powered Digital Twin for Real-Time Pressure Ulcer Prevention.<br />
+  Complete feature reference — how every part of the platform works and how to use it.</p>
+  <p style="margin-top: 20px; font-size: 13px; color: var(--muted);">Version 2 · English · Also available in Arabic.</p>
+</div>
+
+<div class="callout warn">
+  <strong>Research prototype — not a certified medical device.</strong>
+  Thresholds are literature-inspired heuristics (Reswick–Rogers curve, Braden / Waterlow risk axes, EPUAP/NPUAP 2019 guidelines). All recommendations require clinical validation.
+</div>
+
+<div class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#platform-overview">Platform overview</a></li>
+    <li><a href="#getting-started">Getting started</a></li>
+    <li><a href="#landing">Landing page</a></li>
+    <li><a href="#dashboard">Personalized dashboard</a></li>
+    <li><a href="#body3d">3D Digital Tissue Twin</a></li>
+    <li><a href="#rstt">Remaining Safe Tissue Time</a></li>
+    <li><a href="#risk">Risk index (5 axes)</a></li>
+    <li><a href="#ai">AI insights (Claude)</a></li>
+    <li><a href="#admin">Admin dashboard</a></li>
+    <li><a href="#analysis">Session analysis + export</a></li>
+    <li><a href="#connect">Device connection (BLE)</a></li>
+    <li><a href="#profile">Profile management</a></li>
+    <li><a href="#algorithm">The algorithm in detail</a></li>
+    <li><a href="#privacy">Privacy &amp; data</a></li>
+    <li><a href="#i18n">Multi-language &amp; theme</a></li>
+    <li><a href="#firmware">ESP32 firmware (BLE)</a></li>
+    <li><a href="#deploying">Deploying the platform</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#references">References</a></li>
+  </ol>
+</div>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="intro">
+<h2>1 · Introduction</h2>
+
+<p><strong>UlcerShield AI</strong> is an adaptive multi-modal intelligence platform that helps caregivers prevent pressure injuries (bedsores) before they occur. It pairs with a low-cost ESP32 sensor rig over Bluetooth Low Energy, streams pressure, temperature, humidity, and posture data in real time, and turns that stream into a personalized care plan.</p>
+
+<p>The platform is designed for three environments:</p>
+<ul>
+  <li><strong>Hospitals &amp; ICUs</strong> — continuous bedside monitoring for immobilized patients.</li>
+  <li><strong>Long-term care facilities</strong> — personalized prevention across multi-week stays.</li>
+  <li><strong>Home healthcare</strong> — hospital-grade prediction in the home environment.</li>
+</ul>
+
+<h3>What makes it different</h3>
+<ul>
+  <li><strong>Digital Tissue Twin</strong> — a per-patient computational model of vulnerable tissue that keeps evolving as pressure, moisture, temperature, mobility, and clinical risk factors change.</li>
+  <li><strong>Remaining Safe Tissue Time</strong> — instead of "is the pressure high?", it answers "how much longer can this tissue safely tolerate the current position?".</li>
+  <li><strong>AI does not just alert, it recommends</strong> — suggests the exact repositioning direction, angle, and timing.</li>
+  <li><strong>Explainable</strong> — every risk score is decomposed into its contributing factors so clinicians can trust it.</li>
+  <li><strong>Personalized</strong> — takes into account age, BMI, sex, comorbidities, medications, and treatments per patient.</li>
+  <li><strong>Adult and baby modes</strong> — different tissue tolerance curves, different anatomical landmarks, different 3D model.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="platform-overview">
+<h2>2 · Platform overview</h2>
+
+<h3>Roles</h3>
+<p>Every account has a role that determines what parts of the platform they see:</p>
+<table>
+  <tr><th>Role</th><th>Can see</th><th>Cannot see</th></tr>
+  <tr>
+    <td><strong>Patient</strong></td>
+    <td>Their own dashboard, analysis, AI insights, profile, and device pairing.</td>
+    <td>Other patients' data. Admin dashboard. Patient roster.</td>
+  </tr>
+  <tr>
+    <td><strong>Admin</strong></td>
+    <td>Every patient's dashboard, roster with live risk stats, add / delete patients.</td>
+    <td>Nothing restricted.</td>
+  </tr>
+</table>
+
+<h3>Data storage</h3>
+<p>All patient records and session logs are stored <strong>locally in the browser</strong> (IndexedDB). Nothing is uploaded to a central server. The only network requests the platform makes are:</p>
+<ul>
+  <li>Load the HTML/CSS/JS from Vercel (one time, cached).</li>
+  <li>Call Anthropic's Claude API when you click <em>Ask Claude</em>, via a serverless function that keeps your API key private.</li>
+</ul>
+
+<h3>Multi-language</h3>
+<p>English, Arabic (with right-to-left layout), and Korean. Every visible string — including the AI's clinical narrative from Claude — respects the selected language.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="getting-started">
+<h2>3 · Getting started</h2>
+
+<h3>Registering an account</h3>
+<div class="step"><span class="n">1</span><div>Go to the deployed URL. Click <strong>Register here</strong> from the login page (or click <em>Launch platform</em> on the landing page).</div></div>
+<div class="step"><span class="n">2</span><div>Upload an optional profile picture. Enter username, password, full name.</div></div>
+<div class="step"><span class="n">3</span><div><strong>Choose the patient type</strong> — Adult or Baby. This selection changes the entire risk algorithm and the 3D body model. Adult is default (13 years and older); Baby is for anyone under 2 years.</div></div>
+<div class="step"><span class="n">4</span><div>Fill in age, sex, height, weight. All optional, but they personalize the risk model — omitting them means the algorithm applies neutral modifiers.</div></div>
+<div class="step"><span class="n">5</span><div>Tick any <strong>existing conditions</strong>: diabetes, peripheral vascular disease, cardiac disease, renal failure, malnutrition, neuropathy or spinal cord injury, incontinence, dementia, active cancer. Add anything else in the free-text field.</div></div>
+<div class="step"><span class="n">6</span><div>Tick <strong>current medications</strong>: corticosteroids, vasoconstrictors, anticoagulants, chronic sedatives, chronic NSAIDs. Add other drugs in the free-text field.</div></div>
+<div class="step"><span class="n">7</span><div>Tick <strong>special treatments</strong>: mechanical ventilation, dialysis, chemotherapy, radiation therapy, cast or traction, feeding tube.</div></div>
+<div class="step"><span class="n">8</span><div>Add clinical notes (mobility, existing wounds, care team notes).</div></div>
+<div class="step"><span class="n">9</span><div>Click <strong>Create account</strong>.</div></div>
+
+<div class="callout tip">
+  <strong>First-user tip: register as admin.</strong> The very first account in a browser sees a "Register as admin" toggle at the top of the form. Check it to create the administrator account. Every subsequent account is a normal patient.
+</div>
+
+<h3>Signing in</h3>
+<p>Return visits: enter your username and password on <code>/login</code>. Admins are routed to the admin dashboard; patients go directly to their personal dashboard.</p>
+
+<h3>Demo mode</h3>
+<p>The login page has a <strong>"Continue as demo patient"</strong> button. It creates a pre-filled simulated patient (74 y F, 162 cm, 58 kg) so you can explore the platform without registering.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="landing">
+<h2>4 · Landing page</h2>
+
+<p>The public-facing homepage. Anyone can view it — no login required.</p>
+
+<h3>Sections</h3>
+<ul>
+  <li><strong>Hero</strong> — brand tagline, launch button, live device mockup with animated data.</li>
+  <li><strong>Vision</strong> — "Know the risk · Know the time · Know the action" three-pillar summary + three "from → to" transitions.</li>
+  <li><strong>Key innovations</strong> — five cards covering Digital Tissue Twin, Remaining Safe Tissue Time, AI-Powered Risk Forecasting, Personalized Intervention, Continuous Learning.</li>
+  <li><strong>Live demo</strong> — a real-time simulated pressure trace with a rolling risk index.</li>
+  <li><strong>How it works</strong> — Sense → Predict → Recommend → Intervene → Learn five-step loop.</li>
+  <li><strong>Application areas</strong> — hospitals, long-term care, rehabilitation, home healthcare.</li>
+  <li><strong>Call to action</strong> — "Smarter prevention. Safer patients."</li>
+</ul>
+
+<h3>Header controls (visible on every page)</h3>
+<table>
+  <tr><th>Button</th><th>Action</th></tr>
+  <tr><td><span class="kbd">☀ / ☾</span></td><td>Toggle light / dark theme.</td></tr>
+  <tr><td><span class="kbd">T · S/M/L/XL</span></td><td>Cycle body text size (S = 14px, M = 15.5px, L = 17px, XL = 19px).</td></tr>
+  <tr><td><span class="kbd">🌐 EN / عربي / 한국어</span></td><td>Cycle language. Arabic flips the layout to RTL. Claude output follows the selection.</td></tr>
+</table>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="dashboard">
+<h2>5 · Personalized dashboard</h2>
+
+<p>The main clinical view. Every card is live — updated at 1 Hz from the sensor stream (real BLE or simulator).</p>
+
+<h3>Header</h3>
+<p>Shows the page title ("Personalized Patient Care Dashboard"), a subtitle, and a <strong>connection badge</strong> in the top-right. The badge colors change based on the sensor source:</p>
+<ul>
+  <li><span class="badge-inline b-safe">BLE linked</span> — paired with an ESP32 device via Bluetooth.</li>
+  <li><span class="badge-inline b-brand">Simulator</span> — synthetic data source running (default when no hardware).</li>
+  <li><span class="badge-inline b-warn">Connecting…</span> — pairing in progress.</li>
+  <li><span class="badge-inline b-crit">Disconnected</span> — no data stream.</li>
+</ul>
+<p>Click the badge to open the <code>/connect</code> page for pairing.</p>
+
+<h3>Patient card</h3>
+<p>Avatar, full name, ID, age, sex, height, weight, and the live status band (LOW / MODERATE / HIGH / CRITICAL) with the numeric risk score (0–100).</p>
+
+<h3>AI Recommendation</h3>
+<p>The single most important card. Shows the current recommended action (e.g. <em>"Reposition patient 30° to the left now"</em>) with:</p>
+<ul>
+  <li><strong>Tone badge</strong>: advisory · act soon · urgent.</li>
+  <li><strong>Why</strong> — bullet list of the specific signals that drove the recommendation (e.g. "Peak 78 mmHg on sacrum", "Humidity 68%").</li>
+  <li><strong>Apply recommendation</strong> button — records that the caregiver acted on it.</li>
+  <li><strong>Estimated remaining safe time</strong> — how long the current position stays safe.</li>
+</ul>
+
+<h3>Pressure zones (Left / Right)</h3>
+<p>Live readouts from the two FSR sensors, showing force in Newtons, pressure in mmHg (primary), and grams-equivalent. Each zone displays:</p>
+<ul>
+  <li><strong>Level badge</strong>: <span class="badge-inline b-safe">SAFE</span> (&lt;32 mmHg), <span class="badge-inline b-warn">ELEVATED</span> (32–60), <span class="badge-inline b-high">HIGH</span> (60–100), <span class="badge-inline b-crit">CRITICAL</span> (&gt;100), or <span class="badge-inline b-crit">SATURATED</span> (sensor bottomed out).</li>
+  <li><strong>Bar with clinical tick marks</strong> at 32 (capillary closing), 60 (elevated), 100 (critical).</li>
+  <li><strong>Peak this session</strong> — the highest mmHg reading since the counter was last reset.</li>
+</ul>
+
+<h3>Body pressure map (2D)</h3>
+<p>An SVG silhouette of the supine patient with 8 pressure spots (shoulders, scapulae, hips, heels — left and right). Each spot pulses; size and color follow the estimated pressure at that anatomical location.</p>
+
+<h3>Vitals &amp; microclimate</h3>
+<p>Body temperature (MLX90614 IR) and humidity (DHT22). Each row shows the value, unit, sensor name, and a clinical status message — e.g. "Elevated — inspect for redness" at &gt; 37.5 °C.</p>
+
+<h3>Repositioning ring</h3>
+<p>Circular progress ring showing minutes since the last detected repositioning. The ring fills toward the 2-hour target and turns amber &gt; 75 % and red at 100 %. Adjacent stats: turn count, target minutes, occupancy, and a center-of-pressure indicator showing whether the patient is leaning left, balanced, or right.</p>
+
+<h3>Recommendations list</h3>
+<p>Rule-based guidance derived from the local risk model (independent of Claude). Always visible; updates in real time. Contains up to 15 short cards covering:</p>
+<ul>
+  <li>Primary posture guidance (turn to right, turn to left, return to supine).</li>
+  <li>Reposition timer (soon, now).</li>
+  <li>Pressure-driven advice (peak &gt; 100 mmHg, saturation).</li>
+  <li>Asymmetry warning.</li>
+  <li>Humidity / temperature alerts.</li>
+  <li>Standing reminders: offload heels, keep head of bed ≤ 30°.</li>
+</ul>
+
+<h3>Event timeline</h3>
+<p>Ordered list of the last 40 sensor events — turns detected, calibration commands, resets, sensor connect/disconnect. Each row shows a colored kind indicator, human-readable text, and timestamp with uptime.</p>
+
+<h3>Calibration &amp; controls</h3>
+<p>Four buttons that send commands to the ESP32 over BLE:</p>
+<table>
+  <tr><th>Button</th><th>Effect</th></tr>
+  <tr><td>Zero (unload)</td><td>Records the no-load baseline for both pads. Do this with nothing on the sensors.</td></tr>
+  <tr><td>Calibrate Left</td><td>Records the force-to-resistance constant for FSR A. Place a known 1 kg mass on the left pad first.</td></tr>
+  <tr><td>Calibrate Right</td><td>Same for FSR B.</td></tr>
+  <tr><td>Reset counters</td><td>Zeroes the turn count, dose, and peak pressure values.</td></tr>
+</table>
+<p>When running in simulator mode, the buttons show an "Simulator active — connect via BLE" toast instead of executing.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="body3d">
+<h2>6 · 3D Digital Tissue Twin</h2>
+
+<p>An interactive 3D anatomical model of the patient lying supine on a hospital bed. Six pressure hotspots overlay the vulnerable anatomical regions and pulse in proportion to their live risk score.</p>
+
+<h3>Adult mode</h3>
+<ul>
+  <li>Full-size anatomical mannequin (~1.7 m).</li>
+  <li>Six hotspots: shoulders, sacrum, left hip, right hip, left heel, right heel.</li>
+  <li>Sacrum is weighted most heavily (dominant load region in adult supine).</li>
+</ul>
+
+<h3>Baby mode</h3>
+<ul>
+  <li>Newborn proportions (~50 cm long, head:body ratio ≈ 1:4 vs 1:8 in adults).</li>
+  <li>Cot-sized bed, diaper covering.</li>
+  <li>Seven hotspots including <strong>occiput</strong> (back of head) — the #1 pressure landmark in infants due to relatively larger head and soft skull.</li>
+</ul>
+
+<h3>Controls</h3>
+<ul>
+  <li><strong>Click and drag</strong> — rotate the camera around the body.</li>
+  <li><strong>Scroll</strong> — zoom in / out.</li>
+  <li><strong>Show labels / Hide labels</strong> — toggle the region name badges. Labels sit outside the body silhouette so they never cover it.</li>
+  <li><strong>Reset view</strong> (circular arrow icon) — return to the default camera angle.</li>
+</ul>
+
+<h3>Hotspot behavior</h3>
+<p>Each hotspot has a solid dot and a soft glow. Both pulse at a frequency and intensity proportional to the region's risk score:</p>
+<ul>
+  <li>Low risk → slow, faint pulse.</li>
+  <li>Moderate → medium pulse.</li>
+  <li>High → fast, bright pulse.</li>
+  <li>Critical → very fast, intense pulse (attention-grabbing).</li>
+</ul>
+<p>Colors follow the risk band: green (safe), amber (elevated), orange (high), red (critical).</p>
+
+<h3>Custom 3D model (optional)</h3>
+<p>To use a photoreal medical model instead of the procedural anatomical mannequin, drop a glTF/GLB file at <code>public/models/body.glb</code>. The platform probes for this file at runtime; if present it loads instead of the procedural body. Recommended sources: MakeHuman, Blender Studio Base Meshes (CC0), NIH 3D Print Exchange, Sketchfab CC0.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="rstt">
+<h2>7 · Remaining Safe Tissue Time</h2>
+
+<p>The most clinically meaningful number on the dashboard. Instead of asking <em>"is the pressure high?"</em>, it asks <em>"how much longer can this tissue safely tolerate the current position?"</em>.</p>
+
+<h3>The card</h3>
+<p>A circular countdown showing minutes remaining until the highest-risk region crosses into the high-risk band. The color follows the number:</p>
+<ul>
+  <li><span class="badge-inline b-safe">SAFE</span> — &gt; 45 min remaining.</li>
+  <li><span class="badge-inline b-warn">SOON</span> — 16 to 45 min remaining.</li>
+  <li><span class="badge-inline b-high">IMMEDIATE</span> — 1 to 15 min remaining.</li>
+  <li><span class="badge-inline b-crit">ACT NOW</span> — 0 min remaining.</li>
+</ul>
+
+<h3>The "Why this number?" panel</h3>
+<p>Expandable section below the countdown. Shows:</p>
+<ul>
+  <li><strong>Base minutes</strong> at the current peak pressure (from the Reswick-Rogers curve).</li>
+  <li><strong>Every applied modifier</strong> with its multiplicative factor:
+    <ul>
+      <li>Age band (× 0.55 to × 1.00).</li>
+      <li>BMI band (× 0.70 to × 1.00).</li>
+      <li>Sex (× 0.98 for post-menopausal, else neutral).</li>
+      <li>Each existing condition (× 0.60 to × 0.90).</li>
+      <li>Each medication (× 0.75 to × 0.95).</li>
+      <li>Each treatment (× 0.70 to × 0.90).</li>
+      <li>Live microclimate (skin temp, humidity).</li>
+    </ul>
+  </li>
+  <li><strong>Total factor</strong> and <strong>final minutes</strong>.</li>
+</ul>
+
+<div class="callout">
+  <strong>Worked example.</strong> A 74-year-old woman, BMI 22, with diabetes and incontinence, on corticosteroids, whose sacrum has just reached 85 mmHg with skin 37.7 °C and humidity 68 %:<br />
+  Base <code>4200 / (85 − 32) = 79 min</code> · age × 0.75 · diabetes × 0.75 · incontinence × 0.80 · steroids × 0.85 · skin &gt; 37.5 °C × 0.90 · humidity 68 % × 0.85<br />
+  Combined = <strong>0.29</strong> → <strong>23 min remaining</strong>.
+</div>
+
+<p>See §14 for the full algorithm derivation and citations.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="risk">
+<h2>8 · Risk index (5 axes)</h2>
+
+<p>A 100-point score computed on-device (not from Claude) that provides a fast summary of overall risk. It decomposes into five explainable axes:</p>
+
+<table>
+  <tr><th>Axis</th><th>Max</th><th>Driven by</th></tr>
+  <tr><td>Pressure</td><td>30</td><td>Peak mmHg among the two zones.</td></tr>
+  <tr><td>Immobility</td><td>30</td><td>Minutes since last detected reposition, versus the 120-min target.</td></tr>
+  <tr><td>Moisture</td><td>15</td><td>Relative humidity above 40 %.</td></tr>
+  <tr><td>Temperature</td><td>15</td><td>Skin temperature above 37.5 °C (or below 33 °C).</td></tr>
+  <tr><td>Asymmetry</td><td>10</td><td>Center-of-pressure imbalance above 0.4 (fully occupied bed).</td></tr>
+</table>
+
+<p>The risk card shows the total as a circular progress ring and each axis as a horizontal bar so a caregiver can immediately see <em>why</em> the score is what it is. Band thresholds:</p>
+<ul>
+  <li><span class="badge-inline b-safe">LOW</span> · 0–24</li>
+  <li><span class="badge-inline b-warn">MODERATE</span> · 25–49</li>
+  <li><span class="badge-inline b-high">HIGH</span> · 50–74</li>
+  <li><span class="badge-inline b-crit">CRITICAL</span> · 75–100</li>
+</ul>
+
+<h3>Risk trajectory</h3>
+<p>A separate card that projects the highest-risk region forward across five horizons: Now, 15 min, 1 h, 3 h, 6 h. Assumes the current posture holds. A dashed vertical marker shows when repositioning is recommended.</p>
+
+<h3>Risk by body area</h3>
+<p>Per-region breakdown (sacrum, left hip, right hip, left heel, right heel, shoulders, plus occiput for babies). Each row shows a colored band + numeric score. An expandable "Why the risk is what it is" panel lists the underlying contributors.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="ai">
+<h2>9 · AI insights (Claude)</h2>
+
+<p>The platform calls Anthropic's Claude model on demand to produce a clinician-grade narrative interpretation of the current sensor snapshot.</p>
+
+<h3>How to trigger</h3>
+<div class="step"><span class="n">1</span><div>Open the dashboard or <code>/ai</code> page.</div></div>
+<div class="step"><span class="n">2</span><div>Wait for at least one sensor reading (a second or two).</div></div>
+<div class="step"><span class="n">3</span><div>Click <strong>Ask Claude</strong> on the AI card.</div></div>
+<div class="step"><span class="n">4</span><div>The button changes to "Analyzing…" for 3–8 seconds while the API responds.</div></div>
+<div class="step"><span class="n">5</span><div>The response renders in place. Click <strong>Re-analyze</strong> to run it again on the latest snapshot.</div></div>
+
+<h3>What comes back</h3>
+<p>A structured JSON response, parsed and rendered as:</p>
+<ul>
+  <li><strong>Summary</strong> — one paragraph explaining the current clinical picture.</li>
+  <li><strong>Reasoning bullets</strong> — up to 6 short items citing specific measured values.</li>
+  <li><strong>Actions</strong> — up to 6 recommended next steps, each with a tone (info / warn / danger).</li>
+  <li><strong>Escalation flag</strong> — surfaces as a red badge when the model believes the patient needs a clinician now.</li>
+</ul>
+
+<h3>Language</h3>
+<p>The narrative respects the currently selected UI language. Switch to Arabic or Korean via the header language button, click <strong>Re-analyze</strong>, and every user-visible field returns in that language. Numeric values, sensor names (FSR, MLX90614, DHT22) and units (mmHg, °C, %RH) stay in Latin script for clarity.</p>
+
+<h3>Model choice</h3>
+<p>Defaults to <code>claude-sonnet-4-6</code>. Change by setting the <code>ANTHROPIC_MODEL</code> environment variable to any current Claude model (e.g. <code>claude-opus-4-7</code> for higher intelligence at higher cost).</p>
+
+<h3>Cost</h3>
+<p>Each request is roughly ~1500 input tokens (largely cached across calls) plus ~600 output tokens. On Sonnet 4.6 pricing, that is approximately <strong>USD 0.01 per analysis</strong>. 100 analyses per day is around USD 30 per month.</p>
+
+<div class="callout warn">
+  <strong>Privacy note.</strong> The current sensor snapshot and the patient profile object are sent to Anthropic each time you click "Ask Claude". Do not click if the patient profile contains data you cannot share with a third-party API.
+</div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="admin">
+<h2>10 · Admin dashboard</h2>
+
+<p>Only visible to accounts with the <code>admin</code> role. Accessed at <code>/admin</code>.</p>
+
+<h3>KPI strip</h3>
+<p>Four tiles at the top:</p>
+<ul>
+  <li><strong>Total patients</strong> — count of non-admin accounts.</li>
+  <li><strong>Active (5 min)</strong> — patients whose last log row is within the last 5 minutes.</li>
+  <li><strong>High risk</strong> — patients whose current risk score ≥ 50.</li>
+  <li><strong>Avg risk</strong> — mean risk across all patients.</li>
+</ul>
+<p>Auto-refreshes every 10 seconds so the numbers stay current.</p>
+
+<h3>Patient roster</h3>
+<p>Full list of patients, one row each. Every row shows:</p>
+<ul>
+  <li>Avatar + name + <code>@username</code> + age.</li>
+  <li>Sample count (how many log rows exist for this patient).</li>
+  <li>Current risk score with color-coded band.</li>
+  <li>Last-seen time and an online indicator dot (green = active within 5 min).</li>
+  <li><strong>View</strong> button — opens that patient's dashboard.</li>
+  <li><strong>Delete</strong> button — removes the patient and their log rows (requires confirmation).</li>
+</ul>
+<p>A search box filters by name, username, or email.</p>
+
+<h3>Impersonation (viewing another patient)</h3>
+<p>When an admin clicks <strong>View</strong> on a patient row, the dashboard opens with <code>?patient=&lt;id&gt;</code> in the URL. A cyan <strong>"Viewing patient · [name]"</strong> banner appears at the top of every dashboard card, with a <strong>"Return to admin"</strong> button.</p>
+<p>All data on the page — pressure, risk, AI narrative, analysis logs — is scoped to that patient. Log rows are persisted to that patient's ID, not the admin's.</p>
+<p>Patients cannot use <code>?patient=</code> to view someone else's data — the URL parameter is stripped and they are always scoped to their own session.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="analysis">
+<h2>11 · Session analysis + export</h2>
+
+<p>Accessed at <code>/analysis</code>. Shows historical trends from the patient's session log.</p>
+
+<h3>Date range</h3>
+<p>Two date pickers at the top. Default is the last 7 days. Change to any range; the KPI tiles and charts re-render.</p>
+
+<h3>KPI tiles</h3>
+<table>
+  <tr><th>Tile</th><th>Meaning</th></tr>
+  <tr><td>Samples</td><td>Total log rows in the selected range.</td></tr>
+  <tr><td>Avg peak mmHg</td><td>Mean of the higher of the two zone pressures.</td></tr>
+  <tr><td>Max mmHg</td><td>Highest single pressure reading (across both zones).</td></tr>
+  <tr><td>Turns</td><td>Total repositioning events detected.</td></tr>
+  <tr><td>Avg risk</td><td>Mean 100-point risk index.</td></tr>
+  <tr><td>Occupancy %</td><td>Percentage of samples where the bed was occupied.</td></tr>
+</table>
+
+<h3>Charts</h3>
+<ul>
+  <li><strong>Pressure over time</strong> — left and right zone mmHg, layered on one axis.</li>
+  <li><strong>Risk score</strong> — 0 to 100 area chart.</li>
+  <li><strong>Body temperature &amp; humidity</strong> — two-axis line chart.</li>
+  <li><strong>Center of pressure</strong> — −1 (fully left) to +1 (fully right).</li>
+</ul>
+
+<h3>Exports</h3>
+<ul>
+  <li><strong>CSV</strong> — downloads a comma-separated file with columns: timestamp, leftMmHg, rightMmHg, cop, turns, bodyC, humidity, risk, occupied. Filename includes username and today's date.</li>
+  <li><strong>PDF</strong> — opens the browser's print dialog. Choose "Save as PDF" as the destination.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="connect">
+<h2>12 · Device connection (BLE)</h2>
+
+<p>Accessed at <code>/connect</code>. The bridge between the platform and the ESP32 sensor rig.</p>
+
+<h3>Bluetooth Low Energy pairing</h3>
+<p>Available in Chrome, Edge, and Opera on desktop and Android. <strong>Not available on iOS Safari</strong> — Apple has never shipped Web Bluetooth. A warning banner appears if the browser lacks support.</p>
+<div class="step"><span class="n">1</span><div>Flash the firmware at <code>firmware/BedsorePredictorBLE.ino</code> to your ESP32 (see §17).</div></div>
+<div class="step"><span class="n">2</span><div>Power on the ESP32 within Bluetooth range (~10 m).</div></div>
+<div class="step"><span class="n">3</span><div>Click <strong>Pair device</strong>. The browser opens a native pairing dialog.</div></div>
+<div class="step"><span class="n">4</span><div>Select <code>UlcerShield-01</code> from the list. The connection indicator turns green.</div></div>
+<div class="step"><span class="n">5</span><div>Live pressure, vitals, and turn events start streaming to every open tab.</div></div>
+
+<h3>Simulator</h3>
+<p>Right-hand card. Streams synthetic sensor data at 1 Hz — periodic posture shifts, slowly warming skin, drifting humidity. Use it to demo the platform without hardware or when the device is out of range. Click <strong>Start simulator</strong> or <strong>Restart simulator</strong>.</p>
+
+<h3>GATT service reference</h3>
+<table>
+  <tr><th>Characteristic</th><th>UUID (short)</th><th>Direction</th><th>Purpose</th></tr>
+  <tr><td>State</td><td><code>fd01</code></td><td>Notify</td><td>JSON packets, one per second, containing zone readings, CoP, turns, vitals.</td></tr>
+  <tr><td>Command</td><td><code>fd02</code></td><td>Write</td><td>ASCII commands: <code>cal_zero</code>, <code>cal_a</code>, <code>cal_b</code>, <code>reset</code>.</td></tr>
+  <tr><td>Event</td><td><code>fd03</code></td><td>Notify</td><td>JSON event packets (turn detected, calibration done).</td></tr>
+</table>
+<p>Full UUID: <code>0000fd00-1212-efde-1523-785feabcd123</code>.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="profile">
+<h2>13 · Profile management</h2>
+
+<p>Accessed at <code>/profile</code> or via the user chip in the header (dropdown → <em>Edit profile</em>).</p>
+
+<h3>Editable fields</h3>
+<ul>
+  <li>Profile picture (upload; resized to 256px on client).</li>
+  <li>Full name.</li>
+  <li>Email, phone.</li>
+  <li>Age, sex, height, weight.</li>
+  <li>Clinical notes.</li>
+</ul>
+
+<h3>Not editable from the profile page</h3>
+<ul>
+  <li>Username (fixed at registration).</li>
+  <li>Patient type (adult / baby).</li>
+  <li>Conditions, medications, treatments (currently set at registration only — coming soon).</li>
+</ul>
+
+<h3>Sign out</h3>
+<p>The header user chip → <strong>Sign out</strong>, or the <em>Sign out</em> button on the profile page. This clears the local session (does not delete the patient record).</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="algorithm">
+<h2>14 · The algorithm in detail</h2>
+
+<p>The Remaining Safe Tissue Time and personalized risk calculations are derived from published clinical work. Full derivation with citations is in <code>docs/algorithm.md</code> in the source repository.</p>
+
+<h3>Base curve</h3>
+<p>An inverse pressure–time damage curve, calibrated against Landis (1930), Kosiak (1959, 1961), and Reswick &amp; Rogers (1976):</p>
+<pre>baseSafeMin(P) = K / max(1, P − P_cap)      (bounded at ceiling)</pre>
+
+<table>
+  <tr><th>Parameter</th><th>Adult</th><th>Baby (&lt; 2 y)</th></tr>
+  <tr><td>P_cap · capillary closing pressure</td><td>32 mmHg</td><td>20 mmHg</td></tr>
+  <tr><td>K · tissue-tolerance constant</td><td>4200</td><td>2500</td></tr>
+  <tr><td>Ceiling · max safe minutes</td><td>240</td><td>180</td></tr>
+</table>
+
+<h3>Personalization cascade</h3>
+<p>Every modifier is multiplicative. The product is clamped to [0.20, 1.20]. Weights derived from the Braden Scale (Bergstrom 1987) and the Waterlow Score (1985):</p>
+
+<h4>Age factor</h4>
+<table>
+  <tr><td>&lt; 2 y</td><td>× 0.55</td><td>Immature skin, low mobility.</td></tr>
+  <tr><td>2–5 y</td><td>× 0.70</td><td>Developing collagen.</td></tr>
+  <tr><td>6–12 y</td><td>× 0.80</td><td>&nbsp;</td></tr>
+  <tr><td>13–17 y</td><td>× 0.95</td><td>&nbsp;</td></tr>
+  <tr><td>18–40 y</td><td>× 1.00</td><td>Reference cohort.</td></tr>
+  <tr><td>41–64 y</td><td>× 0.90</td><td>Early skin thinning.</td></tr>
+  <tr><td>65–79 y</td><td>× 0.75</td><td>Reduced perfusion.</td></tr>
+  <tr><td>≥ 80 y</td><td>× 0.55</td><td>Fragile skin.</td></tr>
+</table>
+
+<h4>BMI factor</h4>
+<table>
+  <tr><td>&lt; 18.5 (underweight)</td><td>× 0.75</td></tr>
+  <tr><td>18.5–24.9 (normal)</td><td>× 1.00</td></tr>
+  <tr><td>25–29.9 (overweight)</td><td>× 0.95</td></tr>
+  <tr><td>30–34.9 (obese I)</td><td>× 0.85</td></tr>
+  <tr><td>≥ 35 (obese II+)</td><td>× 0.70</td></tr>
+</table>
+
+<h4>Comorbidity factors</h4>
+<table>
+  <tr><td>Diabetes</td><td>× 0.75</td></tr>
+  <tr><td>Peripheral vascular disease</td><td>× 0.65</td></tr>
+  <tr><td>Cardiac disease</td><td>× 0.85</td></tr>
+  <tr><td>Renal failure</td><td>× 0.85</td></tr>
+  <tr><td>Malnutrition</td><td>× 0.70</td></tr>
+  <tr><td>Neuropathy / spinal cord injury</td><td>× 0.60</td></tr>
+  <tr><td>Incontinence</td><td>× 0.80</td></tr>
+  <tr><td>Dementia</td><td>× 0.85</td></tr>
+  <tr><td>Active cancer</td><td>× 0.85</td></tr>
+</table>
+
+<h4>Medication factors</h4>
+<table>
+  <tr><td>Corticosteroids (chronic)</td><td>× 0.85</td></tr>
+  <tr><td>Vasoconstrictors</td><td>× 0.75</td></tr>
+  <tr><td>Anticoagulants</td><td>× 0.90</td></tr>
+  <tr><td>Chronic sedatives</td><td>× 0.80</td></tr>
+  <tr><td>Chronic NSAIDs</td><td>× 0.95</td></tr>
+</table>
+
+<h4>Treatment factors</h4>
+<table>
+  <tr><td>Mechanical ventilation</td><td>× 0.70</td></tr>
+  <tr><td>Dialysis</td><td>× 0.85</td></tr>
+  <tr><td>Chemotherapy (active)</td><td>× 0.75</td></tr>
+  <tr><td>Radiation therapy</td><td>× 0.80</td></tr>
+  <tr><td>Cast / traction</td><td>× 0.75</td></tr>
+  <tr><td>Feeding tube</td><td>× 0.90</td></tr>
+</table>
+
+<h4>Live microclimate factors</h4>
+<ul>
+  <li>Skin temperature &gt; 37.5 °C → × 0.90.</li>
+  <li>Humidity 65–75 % → × 0.85.</li>
+  <li>Humidity &gt; 75 % → × 0.75.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="privacy">
+<h2>15 · Privacy &amp; data</h2>
+
+<ul>
+  <li><strong>All patient records live in the browser.</strong> IndexedDB (via Dexie). Nothing is uploaded to a central server.</li>
+  <li><strong>Log rows are per-patient.</strong> Analysis charts only show the active viewing patient's data.</li>
+  <li><strong>Patient sessions cannot see other patients.</strong> The <code>?patient=</code> URL parameter is stripped for non-admin sessions.</li>
+  <li><strong>Admin sessions can see everything.</strong> Impersonation via <code>?patient=&lt;id&gt;</code> writes log rows against the impersonated patient, not the admin.</li>
+  <li><strong>The Claude API call sends the current snapshot and the patient profile object to Anthropic.</strong> No historical logs are sent. See the Claude privacy note in §9.</li>
+  <li><strong>Session ends when you sign out.</strong> Patient records persist; log rows persist; the in-memory session token is cleared.</li>
+  <li><strong>Cross-device.</strong> Because records are per-browser, they do not sync between devices. To move data, use the CSV export on the analysis page.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="i18n">
+<h2>16 · Multi-language &amp; theme</h2>
+
+<h3>Languages</h3>
+<p>Three languages are shipped: English, Arabic (with right-to-left layout), and Korean. Every user-visible string — labels, buttons, tooltips, toast messages, chart legends, AI narrative — respects the selection.</p>
+<p>Cycle language with the globe button in the header. The selection persists via <code>localStorage</code> across visits.</p>
+
+<h3>Themes</h3>
+<p>Two themes: light and dark. Toggle with the sun/moon button. Persists across visits.</p>
+
+<h3>Font size</h3>
+<p>Four sizes: S (14px), M (15.5px), L (17px), XL (19px). Cycle with the "T" button. Persists across visits.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="firmware">
+<h2>17 · ESP32 firmware (BLE)</h2>
+
+<p>Reference implementation at <code>firmware/BedsorePredictorBLE.ino</code>.</p>
+
+<h3>Hardware</h3>
+<ul>
+  <li>ESP32 dev board (any variant with BLE).</li>
+  <li>Two Force-Sensitive Resistors (FSR402 or similar) with 10 kΩ voltage divider each. Wired to GPIO 34 (left) and GPIO 35 (right).</li>
+  <li>DHT22 humidity sensor on GPIO 4 with a 10 kΩ pull-up.</li>
+  <li>MLX90614 IR temperature sensor on I²C (SDA = GPIO 21, SCL = GPIO 22).</li>
+</ul>
+
+<h3>Required libraries (Arduino IDE)</h3>
+<ul>
+  <li>NimBLE-Arduino (h2zero).</li>
+  <li>ArduinoJson (Benoit Blanchon).</li>
+  <li>DHT sensor library (Adafruit).</li>
+  <li>Adafruit MLX90614 Library.</li>
+</ul>
+
+<h3>Calibration procedure</h3>
+<div class="step"><span class="n">1</span><div>Power on the ESP32 with no load on either pad.</div></div>
+<div class="step"><span class="n">2</span><div>Pair the device with the platform.</div></div>
+<div class="step"><span class="n">3</span><div>Click <strong>Zero (unload)</strong> on the dashboard. This records the no-load resistance baseline.</div></div>
+<div class="step"><span class="n">4</span><div>Place a known 1 kg mass on a rigid disc over the LEFT pad.</div></div>
+<div class="step"><span class="n">5</span><div>Click <strong>Calibrate Left</strong>. Records the force-to-resistance constant for FSR A.</div></div>
+<div class="step"><span class="n">6</span><div>Repeat for the RIGHT pad with <strong>Calibrate Right</strong>.</div></div>
+<div class="step"><span class="n">7</span><div>The device is now calibrated. Constants are held in RAM until next power cycle.</div></div>
+
+<h3>Serial commands (115200 baud)</h3>
+<p>Available in addition to BLE commands:</p>
+<ul>
+  <li><code>c</code> — zero calibration.</li>
+  <li><code>1</code> — mass calibration, zone A.</li>
+  <li><code>2</code> — mass calibration, zone B.</li>
+  <li><code>r</code> — reset turn counter and doses.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="deploying">
+<h2>18 · Deploying the platform</h2>
+
+<p>Full deploy guide in <code>platform/DEPLOY.md</code>. Short version:</p>
+
+<h3>Vercel (recommended)</h3>
+<div class="step"><span class="n">1</span><div>Push the repository to GitHub.</div></div>
+<div class="step"><span class="n">2</span><div>Go to <a href="https://vercel.com/new">vercel.com/new</a>, import the repository.</div></div>
+<div class="step"><span class="n">3</span><div>Set <strong>Root Directory</strong> to <code>platform</code>.</div></div>
+<div class="step"><span class="n">4</span><div>Add environment variables:
+    <ul>
+      <li><code>ANTHROPIC_API_KEY</code> — your Claude key.</li>
+      <li><code>ANTHROPIC_MODEL</code> — model ID (default <code>claude-sonnet-4-6</code>).</li>
+    </ul>
+</div></div>
+<div class="step"><span class="n">5</span><div>Click <strong>Deploy</strong>. Every future <code>git push</code> auto-deploys.</div></div>
+
+<h3>Custom domain</h3>
+<p>Vercel Dashboard → Settings → Domains → Add. Point DNS as instructed. Vercel auto-provisions the TLS certificate. Then set <code>NEXT_PUBLIC_SITE_URL</code> to your domain so canonical URLs and OG images use it.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="troubleshooting">
+<h2>19 · Troubleshooting</h2>
+
+<h4>The AI panel returns "AI request failed"</h4>
+<p>Check:</p>
+<ul>
+  <li><strong>HTTP 501</strong> — <code>ANTHROPIC_API_KEY</code> is missing on the server. Add it in Vercel → Settings → Environment Variables, then redeploy.</li>
+  <li><strong>HTTP 401</strong> — key is invalid or was rotated. Regenerate at console.anthropic.com and update the env var.</li>
+  <li><strong>HTTP 429</strong> — rate limited. Wait a moment and try again.</li>
+</ul>
+
+<h4>The Pair device button is disabled</h4>
+<p>Your browser does not support Web Bluetooth. Use Chrome, Edge, or Opera on desktop or Android. iOS Safari does not expose Web Bluetooth.</p>
+
+<h4>The dashboard shows "No live data"</h4>
+<p>The simulator should auto-start on the first visit. If nothing appears, go to <code>/connect</code> and click <strong>Start simulator</strong>.</p>
+
+<h4>Labels cover the 3D body</h4>
+<p>Labels are hidden by default. If you enabled them and they overlap, click <strong>Hide labels</strong> — the pulsing hotspots alone convey the risk band.</p>
+
+<h4>Analysis page shows "No data yet"</h4>
+<p>Log rows are persisted every 5 seconds while the dashboard is open. Wait a minute after opening the dashboard, then return to analysis.</p>
+
+<h4>The AI narrative is in the wrong language</h4>
+<p>Click <strong>Re-analyze</strong> after switching the language. Existing responses are cached client-side and do not re-translate automatically.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="references">
+<h2>20 · References</h2>
+
+<ol>
+  <li>Landis EM. <em>Micro-injection studies of capillary blood pressure in human skin.</em> Heart, 1930.</li>
+  <li>Kosiak M. <em>Etiology and pathology of ischemic ulcers.</em> Arch Phys Med Rehabil, 1959.</li>
+  <li>Reswick JB, Rogers JE. <em>Experience at Rancho Los Amigos hospital with devices and techniques to prevent pressure sores.</em> Bedsore Biomechanics, 1976.</li>
+  <li>Bergstrom N, Braden BJ, Laguzza A, Holman V. <em>The Braden scale for predicting pressure sore risk.</em> Nurs Res, 1987.</li>
+  <li>Waterlow J. <em>A risk assessment card.</em> Nursing Times, 1985.</li>
+  <li>Baharestani MM. <em>An overview of neonatal and pediatric wound care knowledge and considerations.</em> Ostomy Wound Manage, 2007.</li>
+  <li>Willock J, Baharestani MM, Anthony D. <em>A risk assessment scale for pressure ulcers in children.</em> Nurs Times, 2007.</li>
+  <li>National Pressure Injury Advisory Panel, EPUAP, PPPIA. <em>Prevention and Treatment of Pressure Ulcers/Injuries: Clinical Practice Guideline.</em> 3rd ed., 2019.</li>
+  <li>Gefen A. <em>Reswick and Rogers pressure–time curve for pressure ulcer risk.</em> Nurs Stand, 2009.</li>
+</ol>
+</section>
+
+<footer>
+  UlcerShield AI · Bedsore Prevention Platform · Research prototype · Not a certified medical device.<br />
+  <a href="./user-guide-ar.html">Arabic version</a> · <a href="/">Live platform</a>
+</footer>
+
+</main>
+</body>
+</html>

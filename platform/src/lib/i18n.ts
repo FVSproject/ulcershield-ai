@@ -175,6 +175,7 @@ export const dictionaries = {
     footer_col_product: "Product",
     footer_col_signals: "Signals",
     footer_col_stack: "Stack",
+    footer_docs: "Documentation",
     footer_disclaimer:
       "Research prototype. Not a certified medical device. Thresholds are literature-inspired heuristics and require clinical validation.",
 
@@ -846,6 +847,7 @@ export const dictionaries = {
     footer_col_product: "المنتج",
     footer_col_signals: "الإشارات",
     footer_col_stack: "التقنية",
+    footer_docs: "التوثيق",
     footer_disclaimer:
       "نموذج بحثي. ليس جهازاً طبياً معتمداً. العتبات مستوحاة من الأدبيات وتحتاج إلى تحقّق سريري.",
 
@@ -1481,6 +1483,7 @@ export const dictionaries = {
     footer_col_product: "제품",
     footer_col_signals: "신호",
     footer_col_stack: "스택",
+    footer_docs: "사용 설명서",
     footer_disclaimer:
       "연구용 프로토타입. 인증된 의료기기가 아닙니다. 임계값은 문헌 기반 휴리스틱으로 임상 검증이 필요합니다.",
 
