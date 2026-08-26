@@ -835,4 +835,7 @@ const BAND_HEX: Record<"low" | "moderate" | "high" | "critical", string> = {
   critical: "#ef4444",
 };
 
-useGLTF.preload(MODEL_PATH);
+// We deliberately do NOT preload the GLB — it may not exist. The HEAD-probe
+// pattern in BodyAuto() decides whether to load it or fall back to the
+// procedural anatomical mannequin. Preloading here would trigger a noisy
+// 404 in the console on every page load.
