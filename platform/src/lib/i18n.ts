@@ -481,6 +481,12 @@ export const dictionaries = {
     verify_success_body: "Peak pressure dropped by 30% or more within 5 min. Continue routine monitoring.",
     verify_fail_title: "Repositioning did not sufficiently reduce pressure",
     verify_fail_body: "Peak pressure did not drop by the expected 30% within 5 min. Consider adjusting the tilt angle or trying the other side.",
+    evaluate_step: "Evaluate",
+    evaluate_next_step: "Suggested next step",
+    evaluate_dismiss: "Dismiss",
+    verify_escalate_bump: "Increase tilt from {from}° to {to}° on the {side} — same side, steeper angle.",
+    verify_escalate_switch: "Switch to the {side} at {angle}° — current angle already at safe maximum.",
+    verify_escalate_reassess: "Reassess posture and repeat the AI recommendation.",
 
     // 3D body
     b3_title: "Digital Tissue Twin · 3D body",
@@ -1146,6 +1152,12 @@ export const dictionaries = {
     verify_success_body: "انخفض الضغط الأقصى بنسبة 30% أو أكثر خلال 5 دقائق. تابع المراقبة الروتينية.",
     verify_fail_title: "التقليب لم يُخفّض الضغط كفاية",
     verify_fail_body: "لم ينخفض الضغط الأقصى بالنسبة المتوقّعة (30%) خلال 5 دقائق. جرّب تعديل زاوية الإمالة أو الجانب الآخر.",
+    evaluate_step: "تقييم",
+    evaluate_next_step: "الخطوة التالية المقترحة",
+    evaluate_dismiss: "تجاهل",
+    verify_escalate_bump: "زِد الإمالة من {from}° إلى {to}° على الجانب {side} — نفس الجانب بزاوية أكبر.",
+    verify_escalate_switch: "بدِّل إلى الجانب {side} بزاوية {angle}° — الزاوية الحاليّة عند الحدّ الأقصى الآمن.",
+    verify_escalate_reassess: "أعد تقييم الوضعيّة وكرِّر توصية الذكاء الاصطناعي.",
 
     b3_title: "التوأم الرقمي للأنسجة · جسم ثلاثي الأبعاد",
     b3_pill: "تفاعلي",
@@ -1796,6 +1808,12 @@ export const dictionaries = {
     verify_success_body: "5분 내에 최고 압력이 30% 이상 감소했습니다. 일상 모니터링을 계속하세요.",
     verify_fail_title: "재배치로 압력이 충분히 감소하지 않았습니다",
     verify_fail_body: "5분 내에 예상한 30%만큼 최고 압력이 감소하지 않았습니다. 기울기 각도를 조정하거나 반대쪽을 시도하세요.",
+    evaluate_step: "평가",
+    evaluate_next_step: "제안된 다음 단계",
+    evaluate_dismiss: "닫기",
+    verify_escalate_bump: "{side}쪽 기울기를 {from}°에서 {to}°로 증가 — 같은 쪽, 더 가파른 각도.",
+    verify_escalate_switch: "{side}쪽으로 {angle}°로 전환 — 현재 각도가 이미 안전 최대치입니다.",
+    verify_escalate_reassess: "자세를 재평가하고 AI 권장 사항을 다시 실행하세요.",
 
     b3_title: "디지털 조직 트윈 · 3D 신체",
     b3_pill: "인터랙티브",
