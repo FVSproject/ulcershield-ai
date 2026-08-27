@@ -144,7 +144,10 @@
     <li><a href="#firmware"><span class="num">17</span>. فيرموير ESP32 (BLE)</a></li>
     <li><a href="#deploying"><span class="num">18</span>. نشر المنصّة</a></li>
     <li><a href="#troubleshooting"><span class="num">19</span>. حلّ المشكلات</a></li>
-    <li><a href="#references"><span class="num">20</span>. المراجع</a></li>
+    <li><a href="#reposition"><span class="num">20</span>. التقليب المُخصَّص والتحقّق بعد التدخّل</a></li>
+    <li><a href="#roadmap"><span class="num">21</span>. خارطة طريق المنتج</a></li>
+    <li><a href="#team"><span class="num">22</span>. الفريق وبراءة الاختراع ومعرض سيول 2026</a></li>
+    <li><a href="#references"><span class="num">23</span>. المراجع</a></li>
   </ol>
 </div>
 
@@ -802,8 +805,119 @@
 </section>
 
 <!-- ─────────────────────────────────────────────── -->
+<section class="section" id="reposition">
+<h2><span class="num">20</span> · التقليب المُخصَّص والتحقّق بعد التدخّل</h2>
+
+<p>أصبحت كلّ توصية تقليب تحمل <strong>زاوية إمالة مُحدَّدة</strong> و<strong>مدّة مستهدفة</strong> مُخصَّصتين للمريض، وتُختَتم كلّ توصية بنافذة تحقّق قصيرة تؤكّد أن التدخّل قد خفّض الضغط فعلاً.</p>
+
+<h3>قاعدة الـ<span class="num">30</span>°</h3>
+<p>توصي الإرشادات السريرية الدولية EPUAP / NPUAP / PPPIA (<span class="num">2019</span>) باعتماد <strong>الإمالة الجانبية بزاوية <span class="num">30</span>°</strong> بديلاً عن الاستلقاء الجانبي التقليدي بزاوية <span class="num">90</span>° الذي يُركّز الحمل على الحُرقُوف الأكبر. وتصل مراجعة كوكرين المنهجية (Gillespie وآخرون، <span class="num">2020</span>) إلى النتيجة نفسها لدى البالغين المُعرَّضين لخطر قرحة الفراش. لذلك تعتمد UlcerShield AI الـ<span class="num">30</span>° أساساً في كلّ توصيات «قلِّب المريض إلى الجانب».</p>
+
+<h3>تدرّج الزاوية حسب كتلة الجسم</h3>
+<p>يعيد المرضى الأثقل توزيع الحمل بفاعليّة أكبر عند زاوية أكثر انحداراً بقليل. لذا تُعدِّل المنصّة الزاوية:</p>
+<table>
+  <tr><th>المريض</th><th>زاوية الإمالة</th></tr>
+  <tr><td>رضيع (أقلّ من <span class="num">2</span> سنة)</td><td><span class="num">30</span>°</td></tr>
+  <tr><td>بالغ، BMI &lt; <span class="num">30</span></td><td><span class="num">30</span>°</td></tr>
+  <tr><td>بالغ، BMI <span class="num">30–34.9</span></td><td><span class="num">35</span>°</td></tr>
+  <tr><td>بالغ، BMI ≥ <span class="num">35</span></td><td><span class="num">40</span>°</td></tr>
+</table>
+<p>تعرض بطاقة التوصية زرّاً <strong>«لماذا {angle}°؟»</strong> يشرح الاختيار بلغة بسيطة.</p>
+
+<h3>المدّة المُخصَّصة</h3>
+<p>البروتوكول التقليدي يحدّد التقليب كلّ ساعتين ثابتتين. هذا حلٌّ وسط — بعض المرضى آمنون لمدّة أطول، وآخرون يحتاجون تدخّلاً أبكر. تحسب المنصّة الآن المدّة المستهدفة من أربعة مدخلات:</p>
+<ol>
+  <li><strong>نطاق الخطر الأولي</strong> — حرج → <span class="num">60</span> دقيقة · مرتفع → <span class="num">75</span> دقيقة · متوسّط → <span class="num">100</span> دقيقة · منخفض → <span class="num">120</span> دقيقة.</li>
+  <li><strong>العمر</strong> — الرضّع والأقلّ من <span class="num">2</span> سنة يُحدَّدون بـ<span class="num">60</span> دقيقة · أكبر من <span class="num">80</span> سنة يُحدَّدون بـ<span class="num">75</span> دقيقة · من <span class="num">65</span> إلى <span class="num">79</span> يُحدَّدون بـ<span class="num">90</span> دقيقة.</li>
+  <li><strong>حرارة الجلد</strong> — أكثر من <span class="num">37.5</span> °م تُقصِّر المدّة <span class="num">15</span> دقيقة (الجلد الدافئ أكثر هشاشةً).</li>
+  <li><strong>الرطوبة</strong> — أكثر من <span class="num">65</span>% تُقصِّر المدّة <span class="num">15</span> دقيقة (الجلد الرطب أكثر هشاشةً).</li>
+</ol>
+<p>تُحصَر القيمة بين [<span class="num">60</span>, <span class="num">240</span>] دقيقة. تستخدم حلقة التقليب في لوحة القيادة هذه المدّة هدفاً، وتُبرِزها بشارة سماوية عند اختلافها عن الافتراض القياسي (<span class="num">120</span> دقيقة).</p>
+
+<h3>التحقّق بعد التقليب</h3>
+<p>لا معنى للتوصية إن لم يُنجَح التدخّل فعلاً. عند الضغط على <strong>«تطبيق»</strong> في بطاقة توصية الذكاء الاصطناعي:</p>
+<div class="step"><span class="n">1</span><div>تلتقط المنصّة صورة لحظيّة لذروة الضغط الحاليّة (الأعلى بين المنطقتين اليمنى واليسرى).</div></div>
+<div class="step"><span class="n">2</span><div>يبدأ عدٌّ تنازلي مدّته <span class="num">5</span> دقائق بجوار الزرّ.</div></div>
+<div class="step"><span class="n">3</span><div>بعد <span class="num">5</span> دقائق، تُعيد المنصّة قراءة ذروة الضغط وتحسب مقدار الانخفاض. إن انخفضت الذروة بـ<strong>≥ <span class="num">30</span>%</strong>، يُؤكَّد نجاح التدخّل وتظهر رسالة خضراء.</div></div>
+<div class="step"><span class="n">4</span><div>إن كان الانخفاض أقلّ من <span class="num">30</span>%، تظهر رسالة برتقاليّة تنصح بإعادة فحص وضعية المريض (ربّما كانت الإمالة جزئيّة أو عاد الحمل).</div></div>
+<p>هكذا تُغلَق حلقة «توصية ← تدخّل ← تعلُّم» عند سرير المريض، ويحصل الطاقم على تغذية راجعة مباشرة حول مدى فاعليّة المناورة.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="roadmap">
+<h2><span class="num">21</span> · خارطة طريق المنتج</h2>
+
+<p>صفحة خارطة الطريق العامّة موجودة في <code>/roadmap</code>. فيما يلي ملخّص لِما اكتَمل، وما هو قيد الإنجاز، وما هو مستقبلي.</p>
+
+<h3>تمّ إنجازه في هذه النسخة</h3>
+<ul>
+  <li>زوايا تقليب مُخصَّصة <span class="num">30</span>° / <span class="num">35</span>° / <span class="num">40</span>°.</li>
+  <li>مدّة تقليب متكيّفة يُحدّدها نطاق الخطر والعمر والحرارة والرطوبة.</li>
+  <li>تحقّق من انخفاض الضغط بعد <span class="num">5</span> دقائق من التقليب.</li>
+  <li>التوأم الرقمي للأنسجة مع قائمة عوامل مساهِمة قابلة للتفسير.</li>
+  <li>وضعان — بالغ ورضيع — مع منحنيَي تحمُّل نسيجي منفصلَين.</li>
+</ul>
+
+<h3>قيد الإنجاز — استشعار الوضعيّة بكاميرا العمق</h3>
+<p>كاميرا عمق مثبّتة في السقف (من فئة Intel RealSense أو Azure Kinect) ستؤكّد بشكل مستقلّ وضعيّة المريض وزاوية التقليب. يميّز تتبّع الهيكل العظمي بين الاستلقاء على الظهر، والإمالة الجانبيّة <span class="num">30</span>° يميناً ويساراً، والانبطاح. تعمل الاستدلالات على معالج NPU طرفي — لا تخرج الصور الخام أبداً من عند سرير المريض. تُطابِق الكاميرا بيانات مستشعرات الضغط: إذا رأت الحصيرة انخفاض الضغط ولم ترَ الكاميرا أيّ تقليب فعلي، يُؤشَّر الحدث للمراجعة.</p>
+
+<h3>قيد الإنجاز — معماريّة البوّابة الطرفيّة</h3>
+<p>يحتفظ كلّ سرير بوحدة ESP32 الخاصّة به، لكن تُجمَّع أَسِرَّة متعدّدة عبر بوّابة طرفيّة Raspberry Pi 5 تُخزِّن مؤقتاً وتُشفِّر وتُحوِّل البيانات إلى خادم القسم في المستشفى. تعني الاستدلالات المحلّية أن انقطاع الواي-فاي لن يُسكت التنبيهات. يضمن التخزين المؤقت وإعادة الإرسال تسليم البيانات مرّةً واحدةً على الأقلّ عند عودة الاتّصال. يؤمّن TLS 1.3 بمصادقة متبادلة كلّ حلقة اتّصال.</p>
+
+<h3>مستقبلي — التكامل مع السجلّ الطبّي الإلكتروني HL7 FHIR</h3>
+<p>ستُصدِّر منظومة بيانات موحّدة نتائج الخطر والتدخّلات والنتائج إلى أيّ نظام مستشفى متوافق مع HL7 FHIR. تُترجَم مخرجات التوأم الرقمي إلى موارد Observation في FHIR مع رموز LOINC. تُكتَب التدخّلات بوصفها موارد Procedure و CarePlan — يصبح كلّ تقليب قابلاً للمراجعة داخل Epic أو Cerner أو OpenMRS. ويُتيح إطلاق SMART-on-FHIR للأطبّاء فتح واجهة UlcerShield مباشرةً من داخل السجلّ الطبّي للمريض.</p>
+
+<h3>مستقبلي — برنامج التحقّق من الدقّة</h3>
+<p>قبل تقديم UlcerShield AI بوصفها أداة دعم قرار سريري، ستُجرى دراسة تحقّق متعدّدة المواقع تشمل:</p>
+<ul>
+  <li>توسيع التغطية من منطقتَين إلى مصفوفة <span class="num">16</span> خليّة FSR تغطّي العجز والمِدْوَرَين الأكبرَين والكعبَين واللوحَين والمِنطقة القذاليّة.</li>
+  <li>معايرة لكلّ مريض عند القبول باستخدام الوزن ومؤشّر كتلة الجسم.</li>
+  <li>معيار مرجعي مُعتمَد من الممرِّضين: فحص للجلد بواسطة ممرِّض متخصّص في العناية بالجروح كلّ مناوبة، والنقطة النهائيّة هي حدوث قرحة فراش من الدرجة الأولى فأعلى خلال <span class="num">7</span> أيّام.</li>
+  <li>الإبلاغ عن الحساسيّة والنوعيّة والقيمة التنبّؤيّة الإيجابيّة والسلبيّة، والمساحة تحت منحنى ROC (AUC) للتوقّع مدّة <span class="num">6</span> ساعات.</li>
+  <li>الهدف: AUC ≥ <span class="num">0.85</span> على مجموعة تحقّق مستقلّة قبل أيّ تجربة تتجاوز KSAU-HS.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="team">
+<h2><span class="num">22</span> · الفريق وبراءة الاختراع ومعرض سيول <span class="num">2026</span></h2>
+
+<h3>الفريق — جامعة الملك سعود بن عبدالعزيز للعلوم الصحية</h3>
+<table>
+  <tr><th>الاسم</th><th>الدور</th></tr>
+  <tr><td>أمجاد سلمان الدوسري</td><td>عضو فريق</td></tr>
+  <tr><td>ريمة عياش العنزي</td><td>عضو فريق</td></tr>
+  <tr><td>هناء جهاد العنزي</td><td>عضو فريق</td></tr>
+  <tr><td>صفاء وحيد الدوسري</td><td>عضو فريق</td></tr>
+  <tr><td>د. رشا فؤاد</td><td>المشرفة</td></tr>
+</table>
+
+<h3>معرض سيول الدولي للاختراعات <span class="num">2026</span></h3>
+<p>اختِيرت UlcerShield AI للمشاركة في <strong>SIIF 2026 — مركز Coex، سيول، <span class="num">2–5</span> ديسمبر <span class="num">2026</span></strong>، أحد أعرق المعارض العالميّة المُخصَّصة للابتكار والاختراع ونقل التقنية. تنسجم مشاركة KSAU-HS مع رؤية المملكة <span class="num">2030</span> ومع الاستراتيجية الوطنية للبحث والتطوير والابتكار.</p>
+
+<h3>براءة الاختراع</h3>
+<p>مُقدَّمة للحصول على الحماية عبر <strong>الهيئة السعودية للملكية الفكرية (SAIP)</strong>. عنوان البراءة: <em>«UlcerShield AI: منصّة ذكاء اصطناعي متعدّدة الوسائط تكيّفيّة للتنبّؤ المُخصَّص بقرحة الفراش والوقاية منها ذاتيّاً.»</em></p>
+
+<p>تُركّز الحماية على الابتكارات البرمجيّة والخوارزميّة أكثر من عتاد الاستشعار — ممّا يُنشئ موقعَ ملكيّة فكريّة أوسع يصعب على المنافسين تجاوزه.</p>
+
+<h4>مطالبات براءة الاختراع</h4>
+<ol>
+  <li>معماريّة ذكاء اصطناعي تكيّفيّة للتنبّؤ بقرحة الفراش والوقاية منها.</li>
+  <li>خوارزميّة مؤشّر تحمُّل الأنسجة الديناميكي (DTTI).</li>
+  <li>توليد التوأم الرقمي للأنسجة وتحديثه المستمرّ.</li>
+  <li>محرّك التنبّؤ بإجهاد الأنسجة.</li>
+  <li>حساب الوقت الآمن المتبقّي للأنسجة.</li>
+  <li>خوارزميّات تحسين التقليب المُخصَّص.</li>
+  <li>التنبّؤ متعدّد الآفاق بقرحة الفراش.</li>
+  <li>محرّك وقاية ذاتي التعلّم بشكل مستمرّ.</li>
+  <li>إطار ذكاء اصطناعي قابل للتفسير للتوصيات السريريّة.</li>
+  <li>دمج بيانات المريض متعدّدة الوسائط للتنبّؤ الفردي بمخاطر الأنسجة.</li>
+</ol>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
 <section class="section" id="references">
-<h2><span class="num">20</span> · المراجع</h2>
+<h2><span class="num">23</span> · المراجع</h2>
 
 <ol>
   <li>Landis EM. <em>Micro-injection studies of capillary blood pressure in human skin.</em> Heart, <span class="num">1930</span>.</li>
@@ -815,6 +929,13 @@
   <li>Willock J, Baharestani MM, Anthony D. <em>A risk assessment scale for pressure ulcers in children.</em> Nurs Times, <span class="num">2007</span>.</li>
   <li>National Pressure Injury Advisory Panel, EPUAP, PPPIA. <em>Prevention and Treatment of Pressure Ulcers/Injuries: Clinical Practice Guideline.</em> 3rd ed., <span class="num">2019</span>.</li>
   <li>Gefen A. <em>Reswick and Rogers pressure–time curve for pressure ulcer risk.</em> Nurs Stand, <span class="num">2009</span>.</li>
+  <li>Gillespie BM, Chaboyer WP, McInnes E, Kent B, Whitty JA, Thalib L. <em>Repositioning for pressure injury prevention in adults.</em> Cochrane Database Syst Rev, <span class="num">2020</span>.</li>
+  <li>Defloor T, De Bacquer D, Grypdonck MH. <em>The effect of various combinations of turning and pressure reducing devices on the incidence of pressure ulcers.</em> Int J Nurs Stud, <span class="num">2005</span>.</li>
+  <li>Coleman S, Gorecki C, Nelson EA, Closs SJ, Defloor T, Halfens R, et al. <em>Patient risk factors for pressure ulcer development: systematic review.</em> Int J Nurs Stud, <span class="num">2013</span>.</li>
+  <li>Torres C, Fried JC, Rose K, Manjunath BS. <em>A multiview multimodal system for monitoring patient sleep.</em> IEEE / Sensors, <span class="num">2018</span> — التعرّف على وضعيّة الجسم بصور العمق.</li>
+  <li>Yin J, Xu J, Ren TL. <em>In-bed posture classification using Kinect depth data.</em> IEEE J Biomed Health Inform, <span class="num">2022</span>.</li>
+  <li>HL7 International. <em>FHIR Release <span class="num">4</span> — Observation, Procedure, CarePlan resources.</em> hl7.org/fhir/R4.</li>
+  <li>HL7 International. <em>SMART App Launch Framework v<span class="num">2.0.0</span>.</em> hl7.org/fhir/smart-app-launch.</li>
 </ol>
 </section>
 

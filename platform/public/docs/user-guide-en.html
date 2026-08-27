@@ -131,6 +131,9 @@
     <li><a href="#firmware">ESP32 firmware (BLE)</a></li>
     <li><a href="#deploying">Deploying the platform</a></li>
     <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#reposition">Personalized repositioning &amp; post-turn verification</a></li>
+    <li><a href="#roadmap">Product roadmap</a></li>
+    <li><a href="#team">Team, patent &amp; SIIF 2026</a></li>
     <li><a href="#references">References</a></li>
   </ol>
 </div>
@@ -788,8 +791,119 @@
 </section>
 
 <!-- ─────────────────────────────────────────────── -->
+<section class="section" id="reposition">
+<h2>20 · Personalized repositioning &amp; post-turn verification</h2>
+
+<p>Every repositioning recommendation now includes an <strong>exact tilt angle</strong> and a <strong>target interval</strong> tailored to the patient, and every intervention closes with a short verification window that confirms the turn actually relieved the load.</p>
+
+<h3>The 30° rule</h3>
+<p>The EPUAP / NPUAP / PPPIA 2019 clinical practice guideline recommends <strong>lateral tilt at 30°</strong> as the default repositioning angle, in place of the traditional 90° side-lying that concentrates load over the greater trochanter. A Cochrane systematic review (Gillespie et al., 2020) reaches the same conclusion for adults at risk of pressure injury. UlcerShield AI encodes 30° as the baseline for every "reposition to the side" recommendation.</p>
+
+<h3>Angle scaling by BMI</h3>
+<p>Heavier patients redistribute load more effectively at a slightly steeper angle. The platform therefore adjusts:</p>
+<table>
+  <tr><th>Patient</th><th>Tilt angle</th></tr>
+  <tr><td>Baby (&lt; 2 y)</td><td>30°</td></tr>
+  <tr><td>Adult, BMI &lt; 30</td><td>30°</td></tr>
+  <tr><td>Adult, BMI 30–34.9</td><td>35°</td></tr>
+  <tr><td>Adult, BMI ≥ 35</td><td>40°</td></tr>
+</table>
+<p>The recommendation card exposes a <strong>Why {angle}°?</strong> button that explains the choice in plain language.</p>
+
+<h3>Personalized interval</h3>
+<p>The traditional protocol is a fixed 2-hour turn. That is a compromise — some patients are safe for longer, others need help sooner. The platform now recommends a target interval derived from four inputs:</p>
+<ol>
+  <li><strong>Primary risk band</strong> — critical → 60 min · high → 75 min · moderate → 100 min · low → 120 min.</li>
+  <li><strong>Age</strong> — babies and patients &lt; 2 y cap at 60 min; patients ≥ 80 y cap at 75 min; 65–79 y cap at 90 min.</li>
+  <li><strong>Skin temperature</strong> — &gt; 37.5 °C shortens the interval by 15 min (warm skin is more vulnerable).</li>
+  <li><strong>Humidity</strong> — &gt; 65 % shortens the interval by 15 min (moist skin is more vulnerable).</li>
+</ol>
+<p>The value is clamped to [60, 240] min. The dashboard's turn ring uses this interval as its target and highlights the personalized value with a cyan badge when it deviates from the 120-min default.</p>
+
+<h3>Post-turn verification</h3>
+<p>Recommendations are only useful if the intervention actually worked. When the caregiver taps <strong>Apply</strong> on the AI recommendation card:</p>
+<div class="step"><span class="n">1</span><div>The platform snapshots the current peak pressure (max of left and right zone).</div></div>
+<div class="step"><span class="n">2</span><div>A 5-minute countdown begins next to the button.</div></div>
+<div class="step"><span class="n">3</span><div>After 5 min, the platform re-reads peak pressure and computes the drop. If the peak fell by <strong>≥ 30 %</strong>, the intervention is confirmed as successful and a green toast fires.</div></div>
+<div class="step"><span class="n">4</span><div>If the drop is less than 30 %, an orange toast recommends re-checking patient position (the turn may have been partial, or the load returned).</div></div>
+<p>This closes the "recommend → intervene → learn" loop at bedside, and gives nurses direct feedback on whether the manoeuvre was effective.</p>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="roadmap">
+<h2>21 · Product roadmap</h2>
+
+<p>The public roadmap page lives at <code>/roadmap</code>. Summary of what is shipped, what is next, and what is future work.</p>
+
+<h3>Shipped in this build</h3>
+<ul>
+  <li>Personalized 30° / 35° / 40° repositioning angle.</li>
+  <li>Adaptive turn interval driven by risk band, age, temperature, humidity.</li>
+  <li>5-minute post-turn pressure-drop verification.</li>
+  <li>Digital Tissue Twin with explainable contributor list.</li>
+  <li>Adult and baby modes with separate tolerance curves.</li>
+</ul>
+
+<h3>Next — depth-camera posture sensing</h3>
+<p>A ceiling-mounted depth camera (Intel RealSense or Azure Kinect class) will independently verify patient posture and turn angle. Skeleton tracking distinguishes supine, left-lateral 30°, right-lateral 30°, and prone positions. Inference runs on an edge NPU — raw video never leaves the bedside. The camera reconciles against the pressure sensors: if the mat sees pressure drop but the camera saw no turn, the event is flagged.</p>
+
+<h3>Next — Edge Gateway architecture</h3>
+<p>Each bed keeps its ESP32 mat, but multiple beds aggregate through a Raspberry Pi 5 edge gateway that buffers, encrypts, and forwards to the ward-level hospital server. Local inference means a Wi-Fi drop does not silence the alerts. Store-and-forward buffering guarantees at-least-once delivery once uplink returns. TLS 1.3 mutual auth secures every hop.</p>
+
+<h3>Future — HL7 FHIR EHR integration</h3>
+<p>A unified data schema will export patient risk, interventions, and outcomes to any HL7 FHIR–compatible hospital information system. Tissue-twin outputs map to FHIR Observation resources with LOINC codes. Interventions are Procedure and CarePlan resources — every turn is auditable inside Epic, Cerner, or OpenMRS. A SMART-on-FHIR launch lets a clinician open the UlcerShield view directly from a patient chart.</p>
+
+<h3>Future — accuracy validation program</h3>
+<p>Before UlcerShield AI is positioned as a clinical decision-support tool, a multi-site validation study will:</p>
+<ul>
+  <li>Expand from 2 zones to a 16-cell FSR matrix covering sacrum, both trochanters, both heels, both scapulae, and occiput.</li>
+  <li>Perform per-patient calibration on admission using bodyweight and BMI.</li>
+  <li>Use nurse-adjudicated ground truth: skin inspection by a certified wound-care nurse every shift; endpoint is stage-1+ pressure injury within 7 days.</li>
+  <li>Report sensitivity, specificity, positive and negative predictive value, and area-under-ROC (AUC) for the 6-hour-ahead risk forecast.</li>
+  <li>Target AUC ≥ 0.85 on a held-out validation cohort before any pilot beyond KSAU-HS.</li>
+</ul>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<section class="section" id="team">
+<h2>22 · Team, patent &amp; SIIF 2026</h2>
+
+<h3>Team — King Saud bin Abdulaziz University for Health Sciences</h3>
+<table>
+  <tr><th>Name</th><th>Role</th></tr>
+  <tr><td>Amjad Salman Aldawsari</td><td>Team member</td></tr>
+  <tr><td>Rimah Ayash Alanazi</td><td>Team member</td></tr>
+  <tr><td>Hana Jihad Alenezi</td><td>Team member</td></tr>
+  <tr><td>Safaa Waheed Aldawsari</td><td>Team member</td></tr>
+  <tr><td>Dr. Rasha Fouad</td><td>Supervisor</td></tr>
+</table>
+
+<h3>Seoul International Invention Fair 2026</h3>
+<p>UlcerShield AI was selected for <strong>SIIF 2026 · Coex Center, Seoul, December 2–5, 2026</strong> — one of the world's most prestigious exhibitions dedicated to innovation, invention, and technology transfer. KSAU-HS's participation aligns with Saudi Vision 2030 and the Kingdom's national strategy for research, development, and innovation.</p>
+
+<h3>Patent</h3>
+<p>Submitted for patent protection through the <strong>Saudi Authority for Intellectual Property (SAIP)</strong>. Patent title: <em>"UlcerShield AI: An Adaptive Multi-Modal Artificial Intelligence Platform for Personalized Prediction and Autonomous Prevention of Pressure Injuries."</em></p>
+
+<p>The patent protection focuses primarily on the software and algorithmic innovations rather than the sensing hardware — establishing a broader intellectual-property position that is substantially more difficult for competitors to design around.</p>
+
+<h4>Patentable claims</h4>
+<ol>
+  <li>Adaptive AI prediction architecture for pressure injury prevention.</li>
+  <li>Dynamic Tissue Tolerance Index (DTTI) algorithm.</li>
+  <li>Digital Tissue Twin generation and continuous updating.</li>
+  <li>Tissue Fatigue Prediction Engine.</li>
+  <li>Estimated Remaining Safe Tissue Time computation.</li>
+  <li>Personalized repositioning optimization algorithms.</li>
+  <li>Multi-horizon pressure injury forecasting.</li>
+  <li>Continuous self-learning prevention engine.</li>
+  <li>Explainable AI framework for clinical recommendations.</li>
+  <li>Multimodal patient data fusion for individualized tissue risk prediction.</li>
+</ol>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
 <section class="section" id="references">
-<h2>20 · References</h2>
+<h2>23 · References</h2>
 
 <ol>
   <li>Landis EM. <em>Micro-injection studies of capillary blood pressure in human skin.</em> Heart, 1930.</li>
@@ -801,6 +915,13 @@
   <li>Willock J, Baharestani MM, Anthony D. <em>A risk assessment scale for pressure ulcers in children.</em> Nurs Times, 2007.</li>
   <li>National Pressure Injury Advisory Panel, EPUAP, PPPIA. <em>Prevention and Treatment of Pressure Ulcers/Injuries: Clinical Practice Guideline.</em> 3rd ed., 2019.</li>
   <li>Gefen A. <em>Reswick and Rogers pressure–time curve for pressure ulcer risk.</em> Nurs Stand, 2009.</li>
+  <li>Gillespie BM, Chaboyer WP, McInnes E, Kent B, Whitty JA, Thalib L. <em>Repositioning for pressure injury prevention in adults.</em> Cochrane Database Syst Rev, 2020.</li>
+  <li>Defloor T, De Bacquer D, Grypdonck MH. <em>The effect of various combinations of turning and pressure reducing devices on the incidence of pressure ulcers.</em> Int J Nurs Stud, 2005.</li>
+  <li>Coleman S, Gorecki C, Nelson EA, Closs SJ, Defloor T, Halfens R, et al. <em>Patient risk factors for pressure ulcer development: systematic review.</em> Int J Nurs Stud, 2013.</li>
+  <li>Torres C, Fried JC, Rose K, Manjunath BS. <em>A multiview multimodal system for monitoring patient sleep.</em> IEEE Trans Multimedia / Sensors, 2018 — depth-image body posture recognition.</li>
+  <li>Yin J, Xu J, Ren TL. <em>In-bed posture classification using Kinect depth data.</em> IEEE J Biomed Health Inform, 2022.</li>
+  <li>HL7 International. <em>FHIR Release 4 — Observation, Procedure, CarePlan resources.</em> hl7.org/fhir/R4.</li>
+  <li>HL7 International. <em>SMART App Launch Framework v2.0.0.</em> hl7.org/fhir/smart-app-launch.</li>
 </ol>
 </section>
 

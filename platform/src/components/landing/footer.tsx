@@ -47,6 +47,8 @@ export function Footer() {
               { label: t("nav_ai"), href: "/ai" },
               { label: t("nav_connect"), href: "/connect" },
               { label: t("footer_docs"), href: "/docs/" },
+              { label: t("footer_about"), href: "/about" },
+              { label: t("footer_roadmap"), href: "/roadmap" },
             ]}
           />
           <FooterCol

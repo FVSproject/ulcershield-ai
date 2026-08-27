@@ -176,6 +176,8 @@ export const dictionaries = {
     footer_col_signals: "Signals",
     footer_col_stack: "Stack",
     footer_docs: "Documentation",
+    footer_about: "About the project",
+    footer_roadmap: "Roadmap",
     footer_disclaimer:
       "Research prototype. Not a certified medical device. Thresholds are literature-inspired heuristics and require clinical validation.",
 
@@ -462,11 +464,23 @@ export const dictionaries = {
 
     // twin recommendation copy
     twin_reposition_now: "Reposition patient now",
-    twin_reposition_to: "Reposition patient 30° to the {side} now",
+    twin_reposition_to: "Reposition patient {angle}° to the {side} now",
     twin_reposition_soon: "Reposition within {min} min",
     twin_continue: "Continue routine monitoring",
     twin_side_left: "left",
     twin_side_right: "right",
+    twin_angle_why: "Why {angle}°?",
+    twin_angle_why_30: "30° lateral tilt is the international guideline (EPUAP/NPUAP 2019) — it offloads the sacrum without concentrating pressure on the trochanter.",
+    twin_angle_why_35: "35° lateral tilt because BMI is in the obese range — extra tilt is needed to actually shift the load off the sacrum through the thicker tissue layer.",
+    twin_angle_why_40: "40° lateral tilt because BMI is in the obese class II+ range. Do NOT go beyond 45° — a full 90° lateral concentrates pressure on the trochanter.",
+    twin_interval_label: "Personalized interval",
+    twin_interval_hint: "Traditional protocol is 2 hours. Your interval is adapted to risk band, age, and microclimate.",
+
+    verify_waiting: "Verifying effectiveness — re-checking pressure in {time}",
+    verify_success_title: "Repositioning was effective",
+    verify_success_body: "Peak pressure dropped by 30% or more within 5 min. Continue routine monitoring.",
+    verify_fail_title: "Repositioning did not sufficiently reduce pressure",
+    verify_fail_body: "Peak pressure did not drop by the expected 30% within 5 min. Consider adjusting the tilt angle or trying the other side.",
 
     // 3D body
     b3_title: "Digital Tissue Twin · 3D body",
@@ -848,6 +862,8 @@ export const dictionaries = {
     footer_col_signals: "الإشارات",
     footer_col_stack: "التقنية",
     footer_docs: "التوثيق",
+    footer_about: "عن المشروع",
+    footer_roadmap: "خارطة الطريق",
     footer_disclaimer:
       "نموذج بحثي. ليس جهازاً طبياً معتمداً. العتبات مستوحاة من الأدبيات وتحتاج إلى تحقّق سريري.",
 
@@ -1113,11 +1129,23 @@ export const dictionaries = {
     rr_shoulders: "الكتفان",
 
     twin_reposition_now: "قلّب المريض الآن",
-    twin_reposition_to: "قلّب المريض 30° إلى {side} الآن",
+    twin_reposition_to: "قلّب المريض {angle}° إلى {side} الآن",
     twin_reposition_soon: "قلّب المريض خلال {min} دقيقة",
     twin_continue: "استمرّ في المراقبة الروتينية",
     twin_side_left: "اليسار",
     twin_side_right: "اليمين",
+    twin_angle_why: "لماذا {angle}°؟",
+    twin_angle_why_30: "زاوية 30° هي التوصية الدولية (EPUAP/NPUAP 2019) — تُخفّف الضغط عن العجز دون تركيزه على المدور الأكبر.",
+    twin_angle_why_35: "زاوية 35° لأن مؤشّر كتلة الجسم في نطاق السمنة — الزاوية الإضافية ضرورية لنقل الحِمل عن العجز عبر طبقة الأنسجة الأكثر سُمكاً.",
+    twin_angle_why_40: "زاوية 40° لأن مؤشّر كتلة الجسم في نطاق السمنة درجة II+. لا تتجاوز 45° — الوضعية الجانبية الكاملة 90° تركّز الضغط على المدور الأكبر.",
+    twin_interval_label: "الفاصل الزمني المُخصَّص",
+    twin_interval_hint: "البروتوكول التقليدي كل ساعتين. الفاصل هنا مُخصَّص بحسب نطاق الخطر والعمر والمناخ الدقيق.",
+
+    verify_waiting: "جارٍ التحقّق من الفعّالية — إعادة قياس الضغط خلال {time}",
+    verify_success_title: "التقليب كان فعّالاً",
+    verify_success_body: "انخفض الضغط الأقصى بنسبة 30% أو أكثر خلال 5 دقائق. تابع المراقبة الروتينية.",
+    verify_fail_title: "التقليب لم يُخفّض الضغط كفاية",
+    verify_fail_body: "لم ينخفض الضغط الأقصى بالنسبة المتوقّعة (30%) خلال 5 دقائق. جرّب تعديل زاوية الإمالة أو الجانب الآخر.",
 
     b3_title: "التوأم الرقمي للأنسجة · جسم ثلاثي الأبعاد",
     b3_pill: "تفاعلي",
@@ -1484,6 +1512,8 @@ export const dictionaries = {
     footer_col_signals: "신호",
     footer_col_stack: "스택",
     footer_docs: "사용 설명서",
+    footer_about: "프로젝트 소개",
+    footer_roadmap: "로드맵",
     footer_disclaimer:
       "연구용 프로토타입. 인증된 의료기기가 아닙니다. 임계값은 문헌 기반 휴리스틱으로 임상 검증이 필요합니다.",
 
@@ -1749,11 +1779,23 @@ export const dictionaries = {
     rr_shoulders: "어깨",
 
     twin_reposition_now: "지금 환자 자세를 변경하세요",
-    twin_reposition_to: "지금 환자를 {side}쪽으로 30° 재배치하세요",
+    twin_reposition_to: "지금 환자를 {side}쪽으로 {angle}° 재배치하세요",
     twin_reposition_soon: "{min}분 이내에 자세 변경",
     twin_continue: "일상 모니터링 계속",
     twin_side_left: "왼",
     twin_side_right: "오른",
+    twin_angle_why: "왜 {angle}°인가?",
+    twin_angle_why_30: "30° 측면 기울기는 국제 지침(EPUAP/NPUAP 2019)의 표준입니다. 대전자에 압력을 집중시키지 않으면서 천골 하중을 해제합니다.",
+    twin_angle_why_35: "BMI가 비만 범위에 있으므로 35°를 권장합니다. 더 두꺼운 조직 층을 통해 천골 하중을 실제로 이동시키려면 추가 기울기가 필요합니다.",
+    twin_angle_why_40: "BMI가 비만 II+ 범위에 있으므로 40°를 권장합니다. 45° 이상은 피하십시오 — 90° 완전 측면 자세는 대전자에 압력을 집중시킵니다.",
+    twin_interval_label: "맞춤 간격",
+    twin_interval_hint: "전통적인 프로토콜은 2시간마다입니다. 현재 간격은 위험 대역, 나이, 미기후에 따라 조정됩니다.",
+
+    verify_waiting: "효과 검증 중 — {time} 후 압력 재측정",
+    verify_success_title: "재배치가 효과적이었습니다",
+    verify_success_body: "5분 내에 최고 압력이 30% 이상 감소했습니다. 일상 모니터링을 계속하세요.",
+    verify_fail_title: "재배치로 압력이 충분히 감소하지 않았습니다",
+    verify_fail_body: "5분 내에 예상한 30%만큼 최고 압력이 감소하지 않았습니다. 기울기 각도를 조정하거나 반대쪽을 시도하세요.",
 
     b3_title: "디지털 조직 트윈 · 3D 신체",
     b3_pill: "인터랙티브",

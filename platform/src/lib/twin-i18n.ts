@@ -37,11 +37,13 @@ export function useTwinI18n() {
     let title: string;
     let detail: string;
 
+    const angle = r.angleDegrees ?? 30;
+
     switch (r.kind) {
       case "reposition_side_now":
-        title = t("twin_reposition_to").replace("{side}", sideLabel);
-        detail = `${primaryLabel} · ${r.primaryScore}/100 — ${t("reco_offload_l_b").replace(/LEFT|يسار/gi, sideLabel)}`;
-        // Simpler generic detail:
+        title = t("twin_reposition_to")
+          .replace("{angle}", String(angle))
+          .replace("{side}", sideLabel);
         detail = `${primaryLabel} · ${r.primaryScore}/100`;
         break;
       case "reposition_now":
@@ -61,5 +63,11 @@ export function useTwinI18n() {
     return { title, detail };
   }
 
-  return { formatContributor, formatRecommendation };
+  function angleRationale(angle: number): string {
+    if (angle >= 40) return t("twin_angle_why_40");
+    if (angle >= 35) return t("twin_angle_why_35");
+    return t("twin_angle_why_30");
+  }
+
+  return { formatContributor, formatRecommendation, angleRationale };
 }

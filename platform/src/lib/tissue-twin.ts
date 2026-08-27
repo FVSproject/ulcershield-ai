@@ -50,6 +50,11 @@ export type RecoKind = "reposition_now" | "reposition_side_now" | "reposition_so
 export interface Recommendation {
   kind: RecoKind;
   side?: "left" | "right";
+  /** Recommended tilt angle in degrees. 30° is the international guideline
+   * baseline (EPUAP/NPUAP 2019). We may raise to 35–40° for obese patients
+   * where 30° does not adequately redistribute load. Never above 40° —
+   * a full 90° lateral concentrates load on the trochanter. */
+  angleDegrees?: number;
   minutes?: number;
   primaryRegion: Anatomy;
   primaryScore: number;
@@ -86,6 +91,9 @@ export interface RstBreakdown {
 
 export interface TissueTwinReport {
   overall: { score: number; band: Band };
+  /** Personalized target minutes between repositions — replaces the fixed
+   * 120-min protocol. See `personalizedTurnInterval()` for the formula. */
+  personalizedTurnMin: number;
   regions: RegionRisk[];
   primary: RegionRisk;
   remainingSafeMin: number;
@@ -335,7 +343,76 @@ function forecast(primary: RegionRisk, s: SensorState, horizons = [0, 15, 60, 18
   });
 }
 
-function pickRecommendation(primary: RegionRisk, remainingMin: number, s: SensorState): Recommendation {
+/**
+ * Optimal tilt angle for lateral repositioning.
+ *
+ * International guidelines (EPUAP/NPUAP/PPPIA 2019 Prevention & Treatment of
+ * Pressure Ulcers/Injuries) recommend a 30° lateral tilt as the standard
+ * because it offloads the sacrum without concentrating pressure on the
+ * greater trochanter (as a full 90° lateral would).
+ *
+ * We raise the angle to 35° when the baseline BMI is obese-class-I (30–34.9)
+ * and 40° for obese-class-II+ (≥35) — the extra tilt is needed to actually
+ * shift the load off the sacrum through the thicker adipose layer.
+ *
+ * We NEVER return 45°+ — the risk of trochanteric pressure injury outweighs
+ * the sacral relief benefit above that angle.
+ */
+export function recommendedTiltAngle(patient?: Patient | null): number {
+  if (!patient?.height || !patient?.weight) return 30;
+  const h = patient.height / 100;
+  if (h <= 0) return 30;
+  if (patient.patientType === "baby") return 30;
+  const bmi = patient.weight / (h * h);
+  if (bmi >= 35) return 40;
+  if (bmi >= 30) return 35;
+  return 30;
+}
+
+/**
+ * Personalized target minutes between repositions.
+ *
+ * The traditional "every 2 hours" rule is a fixed protocol. Real evidence
+ * (Cochrane 2020 systematic review of repositioning frequency) shows the
+ * interval should adapt to:
+ *   - patient risk band (higher risk → shorter interval)
+ *   - age (elderly + babies tolerate less)
+ *   - live microclimate (heat + moisture accelerate breakdown)
+ *
+ * Returns a value in the range [60, 240] minutes.
+ */
+export function personalizedTurnInterval(
+  primary: RegionRisk,
+  patient: Patient | null | undefined,
+  s: SensorState
+): number {
+  let base = 120; // classical 2 h baseline
+
+  // Risk band
+  if (primary.band === "critical") base = 60;
+  else if (primary.band === "high") base = 75;
+  else if (primary.band === "moderate") base = 100;
+
+  // Age
+  const age = patient?.age ?? 0;
+  const type: PatientType = patient?.patientType ?? "adult";
+  if (type === "baby" || age < 2) base = Math.min(base, 60);
+  else if (age >= 80) base = Math.min(base, 75);
+  else if (age >= 65) base = Math.min(base, 90);
+
+  // Microclimate
+  if (s.bodyOk && s.bodyC != null && s.bodyC > 37.5) base -= 15;
+  if (s.humidityOk && s.humidity != null && s.humidity > 65) base -= 15;
+
+  return Math.max(60, Math.min(240, Math.round(base)));
+}
+
+function pickRecommendation(
+  primary: RegionRisk,
+  remainingMin: number,
+  s: SensorState,
+  patient?: Patient | null
+): Recommendation {
   const off: "left" | "right" | undefined =
     primary.region === "leftHip" || primary.region === "leftHeel"
       ? "right"
@@ -347,10 +424,13 @@ function pickRecommendation(primary: RegionRisk, remainingMin: number, s: Sensor
         : "left"
       : undefined;
 
+  const angleDegrees = recommendedTiltAngle(patient);
+
   if (primary.score >= 75 || remainingMin <= 5) {
     return {
       kind: off ? "reposition_side_now" : "reposition_now",
       side: off,
+      angleDegrees,
       primaryRegion: primary.region,
       primaryScore: primary.score,
       tone: "danger",
@@ -360,6 +440,7 @@ function pickRecommendation(primary: RegionRisk, remainingMin: number, s: Sensor
     return {
       kind: "reposition_soon",
       side: off,
+      angleDegrees,
       minutes: remainingMin,
       primaryRegion: primary.region,
       primaryScore: primary.score,
@@ -368,6 +449,7 @@ function pickRecommendation(primary: RegionRisk, remainingMin: number, s: Sensor
   }
   return {
     kind: "continue",
+    angleDegrees,
     minutes: remainingMin,
     primaryRegion: primary.region,
     primaryScore: primary.score,
@@ -414,9 +496,11 @@ export function computeTwin(
     if (contributors.length >= 5) break;
   }
 
-  const recommendation = pickRecommendation(primary, remainingSafeMin, s);
+  const recommendation = pickRecommendation(primary, remainingSafeMin, s, patient);
+  const personalizedTurnMin = personalizedTurnInterval(primary, patient, s);
   return {
     overall,
+    personalizedTurnMin,
     regions: scored,
     primary,
     remainingSafeMin,

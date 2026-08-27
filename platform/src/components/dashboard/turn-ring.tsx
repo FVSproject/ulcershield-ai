@@ -5,15 +5,20 @@ import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSensorStore } from "@/lib/store";
 import { useT } from "@/lib/i18n";
+import { computeTwin } from "@/lib/tissue-twin";
+import { useViewing } from "@/lib/viewing";
 
 const R = 68;
 const CIRC = 2 * Math.PI * R;
 
 export function TurnRing() {
   const state = useSensorStore((s) => s.state);
+  const patient = useViewing((s) => s.viewing);
+  const twin = computeTwin(state, patient);
   const t = useT();
   const mins = state?.sinceTurnMin ?? 0;
-  const target = state?.turnTargetMin ?? 120;
+  // Prefer the twin's personalized interval over the fixed 120-min protocol.
+  const target = twin?.personalizedTurnMin ?? state?.turnTargetMin ?? 120;
   const turns = state?.turns ?? 0;
   const occupied = state?.occupied ?? false;
   const cop = state?.cop ?? 0;
@@ -66,10 +71,20 @@ export function TurnRing() {
 
           <div className="grid w-full min-w-0 grid-cols-2 gap-2.5 sm:grid-cols-3">
             <Stat v={turns} l={t("tr_turns")} />
-            <Stat v={target} l={t("tr_target")} />
+            <Stat
+              v={target}
+              l={t("twin_interval_label")}
+              badge={target !== 120}
+            />
             <Stat v={occupied ? t("ui_yes") : t("ui_no")} l={t("tr_occupied")} />
           </div>
         </div>
+
+        {target !== 120 && (
+          <p className="rounded-xl border border-[var(--c-primary-2)]/25 bg-[color-mix(in_oklab,var(--c-primary-2)_8%,transparent)] px-3 py-2 text-[11px] leading-relaxed text-[var(--c-text-2)]">
+            {t("twin_interval_hint")}
+          </p>
+        )}
 
         <CoPBar value={cop} />
       </CardBody>
@@ -77,9 +92,16 @@ export function TurnRing() {
   );
 }
 
-function Stat({ v, l }: { v: number | string; l: string }) {
+function Stat({ v, l, badge }: { v: number | string; l: string; badge?: boolean }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-[var(--c-border)] bg-[var(--c-surface-2)] px-3 py-2.5">
+    <div
+      className={
+        "min-w-0 rounded-2xl border px-3 py-2.5 " +
+        (badge
+          ? "border-[var(--c-primary-2)]/40 bg-[color-mix(in_oklab,var(--c-primary-2)_8%,transparent)]"
+          : "border-[var(--c-border)] bg-[var(--c-surface-2)]")
+      }
+    >
       <div className="num truncate text-xl font-semibold leading-tight">{v}</div>
       <div className="mt-0.5 truncate text-[10px] uppercase tracking-widest text-[var(--c-muted)]">
         {l}
