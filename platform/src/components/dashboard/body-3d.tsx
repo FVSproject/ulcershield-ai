@@ -51,8 +51,8 @@ export function Body3D() {
           <Layers className="h-4 w-4 text-[var(--c-primary-2)]" />
           {t("b3_title")}
         </CardTitle>
-        <Badge tone={patientType === "baby" ? "warn" : "brand"}>
-          {patientType === "baby" ? t("b3_pill_baby") : t("b3_pill")}
+        <Badge tone={patientType === "kid" ? "warn" : "brand"}>
+          {patientType === "kid" ? t("b3_pill_kid") : t("b3_pill")}
         </Badge>
       </CardHeader>
       <CardBody className="space-y-3">
@@ -188,7 +188,7 @@ interface SceneProps {
 function Scene({ twin, showLabels, patientType }: SceneProps) {
   const t = useT();
   const regions: Anatomy[] =
-    patientType === "baby"
+    patientType === "kid"
       ? ["occiput", "shoulders", "sacrum", "leftHip", "rightHip", "leftHeel", "rightHeel"]
       : ["shoulders", "sacrum", "leftHip", "rightHip", "leftHeel", "rightHeel"];
   const byRegion = useMemo(() => {
@@ -197,8 +197,8 @@ function Scene({ twin, showLabels, patientType }: SceneProps) {
     return m;
   }, [twin]);
 
-  const HOTS = patientType === "baby" ? HOTSPOT_POS_BABY : HOTSPOT_POS;
-  const OFFS = patientType === "baby" ? LABEL_OFFSETS_BABY : LABEL_OFFSETS;
+  const HOTS = patientType === "kid" ? HOTSPOT_POS_BABY : HOTSPOT_POS;
+  const OFFS = patientType === "kid" ? LABEL_OFFSETS_BABY : LABEL_OFFSETS;
 
   return (
     <group>
@@ -229,8 +229,8 @@ function Scene({ twin, showLabels, patientType }: SceneProps) {
 
 function Bed({ patientType }: { patientType: PatientType }) {
   // Cot for babies — narrower, with side rails hinted.
-  const w = patientType === "baby" ? 1.4 : 2.4;
-  const d = patientType === "baby" ? 0.7 : 1.0;
+  const w = patientType === "kid" ? 1.4 : 2.4;
+  const d = patientType === "kid" ? 0.7 : 1.0;
   return (
     <group position={[0, -0.7, 0]}>
       <mesh receiveShadow position={[0, 0, 0]}>
@@ -250,7 +250,7 @@ function Bed({ patientType }: { patientType: PatientType }) {
 }
 
 function Pillow({ patientType }: { patientType: PatientType }) {
-  if (patientType === "baby") {
+  if (patientType === "kid") {
     // Very small support beneath the head — babies typically shouldn't have pillows.
     return (
       <mesh position={[-0.5, -0.61, 0]} receiveShadow castShadow>
@@ -276,7 +276,7 @@ function BodyAuto({ patientType }: { patientType: PatientType }) {
   const [status, setStatus] = useState<"probing" | "have" | "missing">("probing");
 
   useEffect(() => {
-    if (patientType === "baby") {
+    if (patientType === "kid") {
       setStatus("missing");
       return;
     }
@@ -294,7 +294,7 @@ function BodyAuto({ patientType }: { patientType: PatientType }) {
     };
   }, [patientType]);
 
-  if (patientType === "baby") return <AnatomicalBaby />;
+  if (patientType === "kid") return <AnatomicalBaby />;
   if (status === "probing") return null;
   if (status === "missing") return <AnatomicalBody />;
 

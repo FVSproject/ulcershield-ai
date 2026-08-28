@@ -4,6 +4,7 @@ import { AppBoot } from "@/components/app-boot";
 import { ImpersonationBanner } from "@/components/dashboard/impersonation-banner";
 import { PatientCard } from "@/components/dashboard/patient-card";
 import { AiRecommendation } from "@/components/dashboard/ai-recommendation";
+import { EvaluateCard } from "@/components/dashboard/evaluate-card";
 import { RemainingTime } from "@/components/dashboard/remaining-time";
 import { RiskTrajectory } from "@/components/dashboard/risk-trajectory";
 import { PressureZones } from "@/components/dashboard/pressure-zones";
@@ -47,6 +48,8 @@ export default function DashboardPage() {
             </div>
             <RemainingTime />
           </div>
+
+          <EvaluateCard />
 
           <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
             <RiskTrajectory />

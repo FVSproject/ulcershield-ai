@@ -8,6 +8,8 @@ import { appendLog, getPatient, isAdmin } from "@/lib/db";
 import { startMockSource } from "@/lib/sources/mock-source";
 import { ToastHost } from "@/components/ui/toast";
 import { useViewing } from "@/lib/viewing";
+import { SosMonitor } from "@/components/sos-monitor";
+import { SosPopup } from "@/components/sos-popup";
 
 /**
  * Wraps every authed page. See ViewingResolver for the URL-driven bits.
@@ -47,6 +49,8 @@ export function AppBoot({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ToastHost />
+      <SosMonitor />
+      <SosPopup />
       <Suspense fallback={null}>
         <ViewingResolver />
       </Suspense>

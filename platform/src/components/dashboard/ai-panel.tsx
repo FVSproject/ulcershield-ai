@@ -11,6 +11,7 @@ import { useViewing } from "@/lib/viewing";
 import { useTheme } from "@/components/theme-provider";
 import { useToasts } from "@/components/ui/toast";
 import { useT } from "@/lib/i18n";
+import { raiseSos } from "@/lib/sos-store";
 
 interface AiResult {
   summary: string;
@@ -42,17 +43,35 @@ export function AiPanel() {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
+          const msg = err?.error || `HTTP ${res.status}`;
           push({
             kind: "danger",
             title: t("aip_fail"),
-            body: err?.error || `HTTP ${res.status}`,
+            body: msg,
+          });
+          void raiseSos({
+            kind: "ai_api_error",
+            severity: res.status === 401 || res.status === 501 ? "danger" : "warn",
+            title: "Claude API request failed",
+            body: `${msg}. See /help for the fix specific to this HTTP status.`,
+            patientId: user?.id,
+            patientName: user?.name,
           });
           return;
         }
         const json = (await res.json()) as AiResult;
         setResult(json);
       } catch (e) {
-        push({ kind: "danger", title: t("aip_fail"), body: (e as Error).message });
+        const msg = (e as Error).message;
+        push({ kind: "danger", title: t("aip_fail"), body: msg });
+        void raiseSos({
+          kind: "ai_api_error",
+          severity: "warn",
+          title: "Claude API request failed",
+          body: `Network or client error: ${msg}. Check your connection and try again from the AI Insights panel.`,
+          patientId: user?.id,
+          patientName: user?.name,
+        });
       }
     });
   }

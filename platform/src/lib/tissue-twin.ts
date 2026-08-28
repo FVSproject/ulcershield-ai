@@ -106,9 +106,10 @@ export interface TissueTwinReport {
 
 // ─── region influence weights ──────────────────────────────────────
 // How much of each FSR's load each anatomical region carries in supine
-// posture. Baby column reflects the pediatric shift: occiput is the #1
-// pressure landmark in infants (soft skull, large head-to-body ratio),
-// heels are relatively less loaded than in adults.
+// posture. Infant column reflects the pediatric shift: occiput is the
+// #1 pressure landmark under 2 y (soft skull, large head-to-body ratio),
+// heels are relatively less loaded than in adults. The 2–12 y "child"
+// profile sits between infant and adult.
 const REGION_WEIGHTS_ADULT: Record<Anatomy, { left: number; right: number }> = {
   occiput: { left: 0.2, right: 0.2 },
   shoulders: { left: 0.45, right: 0.45 },
@@ -118,7 +119,7 @@ const REGION_WEIGHTS_ADULT: Record<Anatomy, { left: number; right: number }> = {
   leftHeel: { left: 0.55, right: 0.0 },
   rightHeel: { left: 0.0, right: 0.55 },
 };
-const REGION_WEIGHTS_BABY: Record<Anatomy, { left: number; right: number }> = {
+const REGION_WEIGHTS_INFANT: Record<Anatomy, { left: number; right: number }> = {
   occiput: { left: 0.9, right: 0.9 }, // primary in infants
   shoulders: { left: 0.35, right: 0.35 },
   sacrum: { left: 0.45, right: 0.45 },
@@ -127,6 +128,34 @@ const REGION_WEIGHTS_BABY: Record<Anatomy, { left: number; right: number }> = {
   leftHeel: { left: 0.35, right: 0.0 },
   rightHeel: { left: 0.0, right: 0.35 },
 };
+const REGION_WEIGHTS_CHILD: Record<Anatomy, { left: number; right: number }> = {
+  occiput: { left: 0.5, right: 0.5 }, // still notable but not #1
+  shoulders: { left: 0.4, right: 0.4 },
+  sacrum: { left: 0.55, right: 0.55 },
+  leftHip: { left: 0.8, right: 0.0 },
+  rightHip: { left: 0.0, right: 0.8 },
+  leftHeel: { left: 0.45, right: 0.0 },
+  rightHeel: { left: 0.0, right: 0.45 },
+};
+
+/** True if the patient is under 2 years — the sub-branch of "kid" that
+ *  still needs the strictly infant tissue parameters. Falls back to true
+ *  when the type is "kid" and no age was provided, to be safe. */
+function isInfant(patient: Patient | null | undefined): boolean {
+  const type: PatientType = patientTypeFrom(patient);
+  const age = patient?.age;
+  if (type !== "kid") return false;
+  if (age == null) return true; // unknown age within "kid" → treat as infant
+  return age < 2;
+}
+
+/** Normalized patient type accessor that maps legacy "baby" → "kid". */
+function patientTypeFrom(p: Patient | null | undefined): PatientType {
+  const raw = p?.patientType as string | undefined;
+  if (raw === "baby") return "kid";
+  if (raw === "kid" || raw === "adult") return raw;
+  return "adult";
+}
 
 // ─── modifier tables ───────────────────────────────────────────────
 const COMORBIDITY_FACTOR: Record<Comorbidity, number> = {
@@ -168,8 +197,11 @@ function band(score: number): Band {
 
 /** Age → { factor, id } — see docs/algorithm.md §2.1. */
 function ageFactor(age: number | undefined, type: PatientType): { factor: number; id: string } | null {
-  if (type === "baby") return { factor: 0.55, id: "age_baby" };
-  if (age == null || age <= 0) return null; // no age given → no modifier
+  // Kid with unknown age: assume worst (infant) → strictest modifier.
+  if (type === "kid" && (age == null || age <= 0)) {
+    return { factor: 0.55, id: "age_infant" };
+  }
+  if (age == null || age <= 0) return null; // adult, no age → no modifier
   if (age < 2) return { factor: 0.55, id: "age_infant" };
   if (age < 6) return { factor: 0.7, id: "age_toddler" };
   if (age < 13) return { factor: 0.8, id: "age_child" };
@@ -186,10 +218,10 @@ function bmiFactor(patient: Patient | null | undefined): { factor: number; id: s
   const h = patient.height / 100;
   if (h <= 0) return null;
   const bmi = patient.weight / (h * h);
-  if (patient.patientType === "baby") {
+  if (isInfant(patient)) {
     // Simplified pediatric proxy — use raw weight, treat < 2.5 kg as under-weight risk.
     if (patient.weight < 2.5) return { factor: 0.65, id: "bmi_low_birth_weight", bmi };
-    return { factor: 1.0, id: "bmi_baby_normal", bmi };
+    return { factor: 1.0, id: "bmi_infant_normal", bmi };
   }
   if (bmi < 18.5) return { factor: 0.75, id: "bmi_underweight", bmi };
   if (bmi < 25) return { factor: 1.0, id: "bmi_normal", bmi };
@@ -219,29 +251,48 @@ function microclimateFactor(s: SensorState): ModifierApplied[] {
   return mods;
 }
 
+/** Tissue-tolerance profile for the pressure-time damage curve. */
+interface TissueProfile {
+  Pcap: number;
+  K: number;
+  ceiling: number;
+}
+function tissueProfile(patient: Patient | null | undefined): TissueProfile {
+  const type: PatientType = patientTypeFrom(patient);
+  if (type === "kid") {
+    if (isInfant(patient)) return { Pcap: 20, K: 2500, ceiling: 180 };
+    // 2–12 y — softer than adult, more tolerant than infant
+    return { Pcap: 25, K: 3300, ceiling: 210 };
+  }
+  return { Pcap: 32, K: 4200, ceiling: 240 };
+}
+
 /**
  * Base RSTT — Reswick-Rogers-style hyperbolic pressure/time curve.
  * See docs/algorithm.md §1.
  */
-function baseSafeMin(pressureMmHg: number, type: PatientType): number {
-  const Pcap = type === "baby" ? 20 : 32;
-  const K = type === "baby" ? 2500 : 4200;
-  const ceiling = type === "baby" ? 180 : 240;
+function baseSafeMin(pressureMmHg: number, patient: Patient | null | undefined): number {
+  const { Pcap, K, ceiling } = tissueProfile(patient);
   if (pressureMmHg <= Pcap) return ceiling;
   return Math.min(ceiling, K / (pressureMmHg - Pcap));
 }
 
+function weightsFor(patient: Patient | null | undefined) {
+  const type: PatientType = patientTypeFrom(patient);
+  if (type === "kid") return isInfant(patient) ? REGION_WEIGHTS_INFANT : REGION_WEIGHTS_CHILD;
+  return REGION_WEIGHTS_ADULT;
+}
+
 // ─── per-region scoring (for the 100-point band) ──────────────────
-function regionPressure(s: SensorState, region: Anatomy, type: PatientType) {
-  const weights = type === "baby" ? REGION_WEIGHTS_BABY : REGION_WEIGHTS_ADULT;
-  const w = weights[region];
+function regionPressure(s: SensorState, region: Anatomy, patient: Patient | null | undefined) {
+  const w = weightsFor(patient)[region];
   return s.left.mmhg * w.left + s.right.mmhg * w.right;
 }
 
-function scoreRegion(s: SensorState, region: Anatomy, type: PatientType): RegionRisk {
+function scoreRegion(s: SensorState, region: Anatomy, patient: Patient | null | undefined): RegionRisk {
   const contributors: Contributor[] = [];
-  const p = regionPressure(s, region, type);
-  const capillary = type === "baby" ? 20 : 32;
+  const p = regionPressure(s, region, patient);
+  const capillary = tissueProfile(patient).Pcap;
 
   let pAxis = 0;
   if (p > capillary) {
@@ -283,9 +334,9 @@ function computeRstt(
   s: SensorState,
   patient: Patient | null | undefined
 ): RstBreakdown {
-  const type: PatientType = patient?.patientType ?? "adult";
-  const pressure = regionPressure(s, primary.region, type);
-  const baseMin = Math.round(baseSafeMin(pressure, type));
+  const type: PatientType = patientTypeFrom(patient);
+  const pressure = regionPressure(s, primary.region, patient);
+  const baseMin = Math.round(baseSafeMin(pressure, patient));
 
   const modifiers: ModifierApplied[] = [];
 
@@ -317,7 +368,7 @@ function computeRstt(
   let totalFactor = modifiers.reduce((acc, m) => acc * m.factor, 1);
   totalFactor = Math.min(1.2, Math.max(0.2, totalFactor));
 
-  const ceiling = type === "baby" ? 180 : 240;
+  const { ceiling } = tissueProfile(patient);
   const finalMin = Math.max(0, Math.min(ceiling, Math.round(baseMin * totalFactor)));
 
   return {
@@ -362,7 +413,9 @@ export function recommendedTiltAngle(patient?: Patient | null): number {
   if (!patient?.height || !patient?.weight) return 30;
   const h = patient.height / 100;
   if (h <= 0) return 30;
-  if (patient.patientType === "baby") return 30;
+  // Kids always stay at 30° — steeper angles concentrate load on immature bony
+  // prominences.
+  if (patientTypeFrom(patient) === "kid") return 30;
   const bmi = patient.weight / (h * h);
   if (bmi >= 35) return 40;
   if (bmi >= 30) return 35;
@@ -395,8 +448,9 @@ export function personalizedTurnInterval(
 
   // Age
   const age = patient?.age ?? 0;
-  const type: PatientType = patient?.patientType ?? "adult";
-  if (type === "baby" || age < 2) base = Math.min(base, 60);
+  const type: PatientType = patientTypeFrom(patient);
+  if (isInfant(patient)) base = Math.min(base, 60);
+  else if (type === "kid") base = Math.min(base, 90);
   else if (age >= 80) base = Math.min(base, 75);
   else if (age >= 65) base = Math.min(base, 90);
 
@@ -463,7 +517,7 @@ export function computeTwin(
   patient?: Patient | null
 ): TissueTwinReport | null {
   if (!s) return null;
-  const type: PatientType = patient?.patientType ?? "adult";
+  const type: PatientType = patientTypeFrom(patient);
   const regions: Anatomy[] = [
     "occiput",
     "shoulders",
@@ -473,7 +527,7 @@ export function computeTwin(
     "leftHeel",
     "rightHeel",
   ];
-  const scored = regions.map((r) => scoreRegion(s, r, type));
+  const scored = regions.map((r) => scoreRegion(s, r, patient));
   scored.sort((a, b) => b.score - a.score);
   const primary = scored[0];
   const overall = { score: s.risk, band: band(s.risk) };

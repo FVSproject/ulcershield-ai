@@ -30,6 +30,8 @@ import { useSession } from "@/lib/session";
 import { useSensorStore } from "@/lib/store";
 import { isAdmin } from "@/lib/db";
 import { useViewing } from "@/lib/viewing";
+import { useSosStore } from "@/lib/sos-store";
+import { LifeBuoy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DictKey } from "@/lib/i18n";
 
@@ -70,6 +72,15 @@ export function SiteHeader() {
 
   const admin = isAdmin(user);
   const NAV = admin ? NAV_ADMIN : NAV_PATIENT;
+  const openSosCount = useSosStore((s) => s.open.length);
+  const refreshSos = useSosStore((s) => s.refresh);
+
+  useEffect(() => {
+    if (!admin) return;
+    refreshSos();
+    const id = window.setInterval(refreshSos, 20_000);
+    return () => window.clearInterval(id);
+  }, [admin, refreshSos]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -190,6 +201,21 @@ export function SiteHeader() {
                 </>
               )}
             </div>
+          )}
+
+          {isApp && user && admin && openSosCount > 0 && (
+            <Link
+              href="/admin"
+              className="ml-1 relative inline-flex h-10 items-center gap-1.5 rounded-full glass px-3 text-[var(--color-crit)] hover:-translate-y-0.5 transition-all"
+              aria-label={`${openSosCount} open SOS events`}
+            >
+              <LifeBuoy className="h-4 w-4" />
+              <span className="num text-[11px] font-bold">{openSosCount}</span>
+              <span
+                className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full animate-pulse"
+                style={{ background: "var(--color-crit)" }}
+              />
+            </Link>
           )}
 
           {isApp && user && (

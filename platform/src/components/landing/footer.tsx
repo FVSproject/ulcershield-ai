@@ -49,6 +49,7 @@ export function Footer() {
               { label: t("footer_docs"), href: "/docs/" },
               { label: t("footer_about"), href: "/about" },
               { label: t("footer_roadmap"), href: "/roadmap" },
+              { label: t("footer_help"), href: "/help" },
             ]}
           />
           <FooterCol

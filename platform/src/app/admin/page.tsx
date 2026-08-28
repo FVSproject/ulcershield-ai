@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Users, Activity, TrendingUp, ShieldAlert, Search, ChevronRight, Trash2 } from "lucide-react";
 import { AppBoot } from "@/components/app-boot";
+import { SosInbox } from "@/components/admin/sos-inbox";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,10 @@ export default function AdminPage() {
             label={t("admin_kpi_avg")}
             value={kpi.avgRisk}
           />
+        </div>
+
+        <div className="mb-6">
+          <SosInbox />
         </div>
 
         <Card>

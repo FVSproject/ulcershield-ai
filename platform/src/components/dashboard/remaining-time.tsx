@@ -28,7 +28,7 @@ export function RemainingTime() {
   const mins = twin?.remainingSafeMin ?? 0;
   const primaryRegion = twin?.primary.region;
   const primary = primaryRegion ? t(REGION_LABEL_KEY[primaryRegion]) : "—";
-  const capMin = twin?.patientType === "baby" ? 180 : 240;
+  const capMin = twin?.patientType === "kid" ? 210 : 240;
   const pct = Math.min(1, mins / capMin);
   const color =
     mins <= 15 ? "var(--color-crit)" : mins <= 45 ? "var(--color-elev)" : "var(--color-safe)";
@@ -50,7 +50,7 @@ export function RemainingTime() {
           <Timer className="h-4 w-4 text-[var(--c-primary-2)]" />
           {t("rt_title")}
         </CardTitle>
-        <Badge tone="brand">{twin?.patientType === "baby" ? t("rt_pill_baby") : t("rt_pill")}</Badge>
+        <Badge tone="brand">{twin?.patientType === "kid" ? t("rt_pill_kid") : t("rt_pill")}</Badge>
       </CardHeader>
       <CardBody className="space-y-4">
         <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">

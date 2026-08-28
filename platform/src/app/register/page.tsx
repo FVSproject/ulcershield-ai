@@ -180,7 +180,7 @@ export default function RegisterPage() {
             </label>
           )}
 
-          {/* Patient type — Adult vs Baby */}
+          {/* Patient type — Adult (13+) vs Kid (<13) */}
           <div className="sm:col-span-2">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--c-muted)]">
               {t("reg_type")}
@@ -194,11 +194,11 @@ export default function RegisterPage() {
                 hint={t("reg_type_adult_hint")}
               />
               <TypeCard
-                active={patientType === "baby"}
-                onClick={() => setPatientType("baby")}
+                active={patientType === "kid"}
+                onClick={() => setPatientType("kid")}
                 icon={<Baby className="h-5 w-5" />}
-                title={t("reg_type_baby")}
-                hint={t("reg_type_baby_hint")}
+                title={t("reg_type_kid")}
+                hint={t("reg_type_kid_hint")}
               />
             </div>
           </div>

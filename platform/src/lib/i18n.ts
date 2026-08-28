@@ -178,6 +178,7 @@ export const dictionaries = {
     footer_docs: "Documentation",
     footer_about: "About the project",
     footer_roadmap: "Roadmap",
+    footer_help: "Help & troubleshooting",
     footer_disclaimer:
       "Research prototype. Not a certified medical device. Thresholds are literature-inspired heuristics and require clinical validation.",
 
@@ -487,6 +488,18 @@ export const dictionaries = {
     verify_escalate_bump: "Increase tilt from {from}° to {to}° on the {side} — same side, steeper angle.",
     verify_escalate_switch: "Switch to the {side} at {angle}° — current angle already at safe maximum.",
     verify_escalate_reassess: "Reassess posture and repeat the AI recommendation.",
+    evaluate_card_title: "Intervention evaluation",
+    evaluate_pill_idle: "standby",
+    evaluate_pill_running: "watching",
+    evaluate_pill_success: "confirmed",
+    evaluate_pill_review: "review",
+    evaluate_idle_hint: "Apply the AI recommendation to start a 5-minute verification cycle.",
+    evaluate_threshold_hint: "The intervention is confirmed effective when peak pressure drops by ≥ {pct}%.",
+    evaluate_watching: "Watching",
+    evaluate_baseline: "Baseline peak",
+    evaluate_history: "Recent interventions",
+    evaluate_success_rate: "{pct}% effective",
+    evaluate_running_hint: "Evaluation in progress",
 
     // 3D body
     b3_title: "Digital Tissue Twin · 3D body",
@@ -607,8 +620,8 @@ export const dictionaries = {
     reg_type: "Patient type",
     reg_type_adult: "Adult",
     reg_type_adult_hint: "13 years and older",
-    reg_type_baby: "Baby / infant",
-    reg_type_baby_hint: "Under 2 years — different algorithm & 3D model",
+    reg_type_kid: "Kid / child",
+    reg_type_kid_hint: "Under 13 years — pediatric tissue tolerance & 3D model",
     reg_conditions: "Existing conditions",
     reg_conditions_hint: "Select any that apply. Used to personalize the risk model.",
     reg_medications: "Current medications",
@@ -647,7 +660,7 @@ export const dictionaries = {
     treat_feeding_tube: "Feeding tube",
 
     // ─── RSTT "why" panel ──────────────────────────────────────────
-    rt_pill_baby: "Baby · Tissue Twin",
+    rt_pill_kid: "Kid · Tissue Twin",
     rt_why: "Why this number?",
     rt_base: "Base",
     rt_after: "with modifiers",
@@ -661,7 +674,7 @@ export const dictionaries = {
     rt_mod_micro: "Microclimate",
 
     // ─── modifier id labels ────────────────────────────────────────
-    rt_id_age_baby: "Baby / infant",
+    rt_id_age_baby: "Kid / infant",
     rt_id_age_infant: "Under 2 years",
     rt_id_age_toddler: "Toddler (2–5)",
     rt_id_age_child: "Child (6–12)",
@@ -676,7 +689,7 @@ export const dictionaries = {
     rt_id_bmi_obese1: "Obese I",
     rt_id_bmi_obese2: "Obese II+",
     rt_id_bmi_low_birth_weight: "Low birth weight",
-    rt_id_bmi_baby_normal: "Normal (baby)",
+    rt_id_bmi_infant_normal: "Normal (infant)",
     rt_id_sex_female_post_menopausal: "Post-menopausal skin",
     rt_id_diabetes: "Diabetes",
     rt_id_peripheral_vascular: "Peripheral vascular disease",
@@ -703,7 +716,7 @@ export const dictionaries = {
     rt_id_micro_hum_severe: "Severe humidity",
 
     // 3D
-    b3_pill_baby: "Baby · interactive",
+    b3_pill_kid: "Kid · interactive",
 
     // new region
     rr_occiput: "Occiput (back of head)",
@@ -870,6 +883,7 @@ export const dictionaries = {
     footer_docs: "التوثيق",
     footer_about: "عن المشروع",
     footer_roadmap: "خارطة الطريق",
+    footer_help: "المساعدة وحلّ المشكلات",
     footer_disclaimer:
       "نموذج بحثي. ليس جهازاً طبياً معتمداً. العتبات مستوحاة من الأدبيات وتحتاج إلى تحقّق سريري.",
 
@@ -1158,6 +1172,18 @@ export const dictionaries = {
     verify_escalate_bump: "زِد الإمالة من {from}° إلى {to}° على الجانب {side} — نفس الجانب بزاوية أكبر.",
     verify_escalate_switch: "بدِّل إلى الجانب {side} بزاوية {angle}° — الزاوية الحاليّة عند الحدّ الأقصى الآمن.",
     verify_escalate_reassess: "أعد تقييم الوضعيّة وكرِّر توصية الذكاء الاصطناعي.",
+    evaluate_card_title: "تقييم التدخّل",
+    evaluate_pill_idle: "بانتظار",
+    evaluate_pill_running: "قيد المتابعة",
+    evaluate_pill_success: "مؤكَّد",
+    evaluate_pill_review: "مراجعة",
+    evaluate_idle_hint: "طبِّق توصية الذكاء الاصطناعي لبدء دورة تحقّق مدّتها ٥ دقائق.",
+    evaluate_threshold_hint: "يُعتبر التدخّل ناجحاً عند انخفاض ذروة الضغط بـ ≥ {pct}%.",
+    evaluate_watching: "قيد المراقبة",
+    evaluate_baseline: "الذروة الأساسيّة",
+    evaluate_history: "التدخّلات الأخيرة",
+    evaluate_success_rate: "فعّال {pct}%",
+    evaluate_running_hint: "التقييم جارٍ",
 
     b3_title: "التوأم الرقمي للأنسجة · جسم ثلاثي الأبعاد",
     b3_pill: "تفاعلي",
@@ -1270,8 +1296,8 @@ export const dictionaries = {
     reg_type: "نوع المريض",
     reg_type_adult: "بالغ",
     reg_type_adult_hint: "١٣ سنة فأكبر",
-    reg_type_baby: "رضيع / طفل صغير",
-    reg_type_baby_hint: "أقل من سنتين — خوارزمية مختلفة ونموذج ثلاثي الأبعاد للرضيع",
+    reg_type_kid: "طفل",
+    reg_type_kid_hint: "أقل من ١٣ سنة — منحنى تحمُّل نسيجي للأطفال ونموذج ثلاثي الأبعاد مخصّص",
     reg_conditions: "الأمراض القائمة",
     reg_conditions_hint: "اختر ما ينطبق. يُستخدم لتخصيص نموذج الخطر.",
     reg_medications: "الأدوية الحالية",
@@ -1306,7 +1332,7 @@ export const dictionaries = {
     treat_cast_traction: "جبس / شدّ",
     treat_feeding_tube: "أنبوب تغذية",
 
-    rt_pill_baby: "رضيع · التوأم الرقمي",
+    rt_pill_kid: "طفل · التوأم الرقمي",
     rt_why: "لماذا هذا الرقم؟",
     rt_base: "الأساس",
     rt_after: "مع المُعدِّلات",
@@ -1319,7 +1345,7 @@ export const dictionaries = {
     rt_mod_treat: "علاج",
     rt_mod_micro: "المناخ الدقيق",
 
-    rt_id_age_baby: "رضيع",
+    rt_id_age_baby: "طفل / رضيع",
     rt_id_age_infant: "أقل من سنتين",
     rt_id_age_toddler: "طفل صغير (٢–٥)",
     rt_id_age_child: "طفل (٦–١٢)",
@@ -1334,7 +1360,7 @@ export const dictionaries = {
     rt_id_bmi_obese1: "سمنة درجة ١",
     rt_id_bmi_obese2: "سمنة درجة ٢+",
     rt_id_bmi_low_birth_weight: "وزن ولادة منخفض",
-    rt_id_bmi_baby_normal: "طبيعي (رضيع)",
+    rt_id_bmi_infant_normal: "طبيعي (رضيع)",
     rt_id_sex_female_post_menopausal: "جلد بعد سن اليأس",
     rt_id_diabetes: "السكري",
     rt_id_peripheral_vascular: "مرض الأوعية الطرفية",
@@ -1360,7 +1386,7 @@ export const dictionaries = {
     rt_id_micro_hum_high: "ارتفاع الرطوبة",
     rt_id_micro_hum_severe: "رطوبة حادّة",
 
-    b3_pill_baby: "رضيع · تفاعلي",
+    b3_pill_kid: "طفل · تفاعلي",
 
     rr_occiput: "مؤخرة الرأس",
   },
@@ -1526,6 +1552,7 @@ export const dictionaries = {
     footer_docs: "사용 설명서",
     footer_about: "프로젝트 소개",
     footer_roadmap: "로드맵",
+    footer_help: "도움말 및 문제 해결",
     footer_disclaimer:
       "연구용 프로토타입. 인증된 의료기기가 아닙니다. 임계값은 문헌 기반 휴리스틱으로 임상 검증이 필요합니다.",
 
@@ -1814,6 +1841,18 @@ export const dictionaries = {
     verify_escalate_bump: "{side}쪽 기울기를 {from}°에서 {to}°로 증가 — 같은 쪽, 더 가파른 각도.",
     verify_escalate_switch: "{side}쪽으로 {angle}°로 전환 — 현재 각도가 이미 안전 최대치입니다.",
     verify_escalate_reassess: "자세를 재평가하고 AI 권장 사항을 다시 실행하세요.",
+    evaluate_card_title: "중재 평가",
+    evaluate_pill_idle: "대기",
+    evaluate_pill_running: "관찰 중",
+    evaluate_pill_success: "확인됨",
+    evaluate_pill_review: "검토",
+    evaluate_idle_hint: "AI 권장 사항을 적용하면 5분 검증 주기가 시작됩니다.",
+    evaluate_threshold_hint: "최고 압력이 ≥ {pct}% 감소하면 중재가 효과적으로 확인됩니다.",
+    evaluate_watching: "관찰 중",
+    evaluate_baseline: "기준 최고치",
+    evaluate_history: "최근 중재",
+    evaluate_success_rate: "{pct}% 효과적",
+    evaluate_running_hint: "평가 진행 중",
 
     b3_title: "디지털 조직 트윈 · 3D 신체",
     b3_pill: "인터랙티브",
@@ -1926,8 +1965,8 @@ export const dictionaries = {
     reg_type: "환자 유형",
     reg_type_adult: "성인",
     reg_type_adult_hint: "13세 이상",
-    reg_type_baby: "영아 / 유아",
-    reg_type_baby_hint: "만 2세 미만 — 알고리즘과 3D 모델이 다름",
+    reg_type_kid: "어린이",
+    reg_type_kid_hint: "만 13세 미만 — 소아 조직 내성 및 3D 모델 사용",
     reg_conditions: "기존 질환",
     reg_conditions_hint: "해당 항목을 선택하세요. 위험 모델을 개인화하는 데 사용됩니다.",
     reg_medications: "현재 복용 약물",
@@ -1962,7 +2001,7 @@ export const dictionaries = {
     treat_cast_traction: "석고 / 견인",
     treat_feeding_tube: "경관 영양",
 
-    rt_pill_baby: "영아 · 조직 트윈",
+    rt_pill_kid: "어린이 · 조직 트윈",
     rt_why: "이 숫자의 근거는?",
     rt_base: "기본",
     rt_after: "수정 계수 적용",
@@ -1975,7 +2014,7 @@ export const dictionaries = {
     rt_mod_treat: "치료",
     rt_mod_micro: "미기후",
 
-    rt_id_age_baby: "영아",
+    rt_id_age_baby: "어린이 / 영아",
     rt_id_age_infant: "만 2세 미만",
     rt_id_age_toddler: "유아 (2–5)",
     rt_id_age_child: "어린이 (6–12)",
@@ -1990,7 +2029,7 @@ export const dictionaries = {
     rt_id_bmi_obese1: "비만 I",
     rt_id_bmi_obese2: "비만 II+",
     rt_id_bmi_low_birth_weight: "저체중 출생",
-    rt_id_bmi_baby_normal: "정상 (영아)",
+    rt_id_bmi_infant_normal: "정상 (영아)",
     rt_id_sex_female_post_menopausal: "폐경 후 피부",
     rt_id_diabetes: "당뇨병",
     rt_id_peripheral_vascular: "말초혈관 질환",
@@ -2016,7 +2055,7 @@ export const dictionaries = {
     rt_id_micro_hum_high: "습도 상승",
     rt_id_micro_hum_severe: "심각한 습도",
 
-    b3_pill_baby: "영아 · 인터랙티브",
+    b3_pill_kid: "어린이 · 인터랙티브",
 
     rr_occiput: "후두부 (뒤통수)",
   },

@@ -3,7 +3,11 @@
 import Dexie, { type Table } from "dexie";
 
 export type Role = "patient" | "admin";
-export type PatientType = "adult" | "baby";
+/** Broad patient category chosen at registration.
+ *  - "adult" — 13 years and older
+ *  - "kid"   — under 13 years (algorithm further splits infant < 2 y internally)
+ *  Historical value "baby" is migrated to "kid" on read. */
+export type PatientType = "adult" | "kid";
 
 /** Well-known comorbidities the algorithm knows how to weight. */
 export type Comorbidity =
@@ -74,9 +78,35 @@ export interface LogRow {
   occupied: 0 | 1;
 }
 
+/** SOS / system-issue events raised anywhere in the platform.
+ *  Persisted so an admin session can review them even if the raising
+ *  browser tab has since closed. */
+export type SosKind =
+  | "ble_disconnect"
+  | "sensor_stale"
+  | "ai_api_error"
+  | "critical_unhandled"
+  | "verify_repeated_fail"
+  | "manual";
+
+export interface SosEvent {
+  id?: number;
+  patientId?: string; // owning patient (empty for system-level events)
+  patientName?: string;
+  kind: SosKind;
+  severity: "info" | "warn" | "danger";
+  title: string;
+  body: string;
+  ts: number;
+  resolved: 0 | 1;
+  resolvedAt?: number;
+  resolvedBy?: string;
+}
+
 class UsDb extends Dexie {
   patients!: Table<Patient, string>;
   logs!: Table<LogRow, number>;
+  sos!: Table<SosEvent, number>;
 
   constructor() {
     super("ulcershield-ai");
@@ -108,6 +138,18 @@ class UsDb extends Dexie {
           if (!p.treatments) p.treatments = [];
         });
       });
+    // v4: kid replaces baby, plus SOS events table
+    this.version(4)
+      .stores({
+        patients: "id, username, active, createdAt, role, patientType",
+        logs: "++id, patientId, ts, [patientId+ts]",
+        sos: "++id, patientId, ts, resolved, kind",
+      })
+      .upgrade(async (tx) => {
+        await tx.table("patients").toCollection().modify((p: Patient) => {
+          if ((p.patientType as string) === "baby") p.patientType = "kid";
+        });
+      });
   }
 }
 
@@ -125,7 +167,33 @@ export function isAdmin(p: Patient | null | undefined): boolean {
   return roleOf(p) === "admin";
 }
 export function patientTypeOf(p: Patient | null | undefined): PatientType {
-  return p?.patientType ?? "adult";
+  const raw = p?.patientType as string | undefined;
+  if (raw === "baby") return "kid";
+  if (raw === "kid" || raw === "adult") return raw;
+  return "adult";
+}
+
+// ─── SOS helpers ────────────────────────────────────────────────────
+export async function emitSos(ev: Omit<SosEvent, "id" | "ts" | "resolved">) {
+  return getDb().sos.add({ ...ev, ts: Date.now(), resolved: 0 });
+}
+
+export async function listOpenSos(): Promise<SosEvent[]> {
+  const rows = await getDb().sos.where("resolved").equals(0).toArray();
+  return rows.sort((a, b) => b.ts - a.ts);
+}
+
+export async function listAllSos(): Promise<SosEvent[]> {
+  const rows = await getDb().sos.orderBy("ts").toArray();
+  return rows.reverse();
+}
+
+export async function resolveSos(id: number, by: string) {
+  await getDb().sos.update(id, { resolved: 1, resolvedAt: Date.now(), resolvedBy: by });
+}
+
+export async function countOpenSos(): Promise<number> {
+  return getDb().sos.where("resolved").equals(0).count();
 }
 
 export async function listPatients(): Promise<Patient[]> {
