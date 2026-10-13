@@ -49,29 +49,56 @@ export async function connectBle(): Promise<{ name: string }> {
   if (!bleAvailable()) throw new Error("Web Bluetooth is not available in this browser.");
 
   const store = useSensorStore.getState();
+  const wasLive = store.source === "ble" && store.connection === "connected";
   store.setConnection("connecting");
 
-  device = await navigator.bluetooth.requestDevice({
-    filters: [{ services: [US_SERVICE] }, { namePrefix: "UlcerShield" }],
-    optionalServices: [US_SERVICE],
-  });
+  let picked: BluetoothDevice;
+  try {
+    picked = await navigator.bluetooth.requestDevice({
+      filters: [{ services: [US_SERVICE] }, { namePrefix: "UlcerShield" }],
+      optionalServices: [US_SERVICE],
+    });
+  } catch (e) {
+    // Chooser cancelled or nothing found: leave the current link as it was.
+    store.setConnection(wasLive ? "connected" : "disconnected");
+    throw e;
+  }
 
-  device.addEventListener("gattserverdisconnected", handleDisconnect);
-  const server = await device.gatt!.connect();
-  const service = await server.getPrimaryService(US_SERVICE);
+  // Re-pairing to a different bed: drop the old link so two devices never feed the store.
+  if (device && device !== picked) {
+    device.removeEventListener("gattserverdisconnected", handleDisconnect);
+    device.gatt?.disconnect();
+  }
+  device = picked;
 
-  [stateChar, cmdChar, eventChar] = await Promise.all([
-    service.getCharacteristic(US_STATE_CHAR),
-    service.getCharacteristic(US_CMD_CHAR),
-    service.getCharacteristic(US_EVENT_CHAR).catch(() => null as unknown as BluetoothRemoteGATTCharacteristic),
-  ]);
+  try {
+    device.addEventListener("gattserverdisconnected", handleDisconnect);
+    const server = await device.gatt!.connect();
+    const service = await server.getPrimaryService(US_SERVICE);
 
-  stateChar!.addEventListener("characteristicvaluechanged", onStateNotify);
-  await stateChar!.startNotifications();
+    [stateChar, cmdChar, eventChar] = await Promise.all([
+      service.getCharacteristic(US_STATE_CHAR),
+      service.getCharacteristic(US_CMD_CHAR),
+      service.getCharacteristic(US_EVENT_CHAR).catch(() => null as unknown as BluetoothRemoteGATTCharacteristic),
+    ]);
 
-  if (eventChar) {
-    eventChar.addEventListener("characteristicvaluechanged", onEventNotify);
-    await eventChar.startNotifications();
+    // Start the device stream from a clean slate; otherwise the simulator's last
+    // reading becomes `prev` and its timers leak into the real data.
+    useSensorStore.setState({ state: null, history: [] });
+
+    stateChar!.addEventListener("characteristicvaluechanged", onStateNotify);
+    await stateChar!.startNotifications();
+
+    if (eventChar) {
+      eventChar.addEventListener("characteristicvaluechanged", onEventNotify);
+      await eventChar.startNotifications();
+    }
+  } catch (e) {
+    // Out of range, wrong firmware, etc.: release the device so the UI isn't stuck on "connecting".
+    device.removeEventListener("gattserverdisconnected", handleDisconnect);
+    if (device.gatt?.connected) device.gatt.disconnect();
+    handleDisconnect();
+    throw e;
   }
 
   store.setSource("ble", device.name ?? "UlcerShield");
@@ -116,7 +143,7 @@ function onStateNotify(ev: Event) {
       bodyC: raw.b,
       humidity: raw.h,
       turns: raw.t,
-      turnTs: raw.st === 0 ? Date.now() : undefined,
+      sinceTurnMin: raw.st,
     });
     store.ingest(next);
   } catch (e) {

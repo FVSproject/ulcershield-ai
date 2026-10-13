@@ -95,8 +95,11 @@ function ViewingResolver() {
   useEffect(() => {
     const currentId = viewing?.id ?? null;
     if (lastViewingId.current !== null && lastViewingId.current !== currentId) {
+      const { source, connection } = useSensorStore.getState();
       useSensorStore.setState({ state: null, history: [], events: [] });
-      startMockSource();
+      // A paired bedside device keeps streaming; starting the simulator here
+      // would interleave fake readings with the real ones.
+      if (!(source === "ble" && connection === "connected")) startMockSource();
     }
     lastViewingId.current = currentId;
   }, [viewing]);

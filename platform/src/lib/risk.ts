@@ -78,6 +78,8 @@ export function stateFromRaw(prev: SensorState | null, raw: {
   humidity?: number | null;
   turns?: number;
   turnTs?: number;
+  /** Minutes since the last turn as reported by the device; overrides local tracking. */
+  sinceTurnMin?: number;
   turnTargetMin?: number;
 }): SensorState {
   const occupied = raw.left.mmhg + raw.right.mmhg > P_OCCUPIED * 2;
@@ -94,7 +96,9 @@ export function stateFromRaw(prev: SensorState | null, raw: {
 
   // sinceTurnMin: keep continuous if turns unchanged, reset when it ticks up
   let sinceTurnMin = 0;
-  if (prev) {
+  if (raw.sinceTurnMin !== undefined) {
+    sinceTurnMin = raw.sinceTurnMin;
+  } else if (prev) {
     if (raw.turnTs && prev.turns !== turns) sinceTurnMin = 0;
     else sinceTurnMin = prev.sinceTurnMin + (raw.ts - prev.ts) / 60000;
   }

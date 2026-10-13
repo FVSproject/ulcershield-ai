@@ -34,6 +34,9 @@ export default function ConnectPage() {
       push({ kind: "ok", title: t("connect_pair_ok"), body: name });
     } catch (e) {
       push({ kind: "danger", title: t("connect_pair_fail"), body: (e as Error).message });
+      // Nothing paired: keep data flowing instead of leaving the dashboard empty.
+      const s = useSensorStore.getState();
+      if (!(s.source === "ble" && s.connection === "connected")) startMockSource();
     } finally {
       setBusy(false);
     }
@@ -156,7 +159,7 @@ export default function ConnectPage() {
             <p className="text-sm text-[var(--c-text-2)]">
               {t("connect_firmware_body")}{" "}
               <code className="rounded bg-[var(--c-surface-2)] px-1.5 py-0.5 text-xs">
-                firmware/BedsorePredictorBLE.ino
+                firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino
               </code>
             </p>
           </CardBody>
