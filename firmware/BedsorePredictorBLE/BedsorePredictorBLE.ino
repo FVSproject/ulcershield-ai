@@ -1,36 +1,53 @@
 /*
  * ============================================================================
- *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5
+ *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5.1
  *  نظام التنبؤ المبكر بقرحة الفراش
  * ============================================================================
- *  v5 -- BLE peripheral (Web Bluetooth)
- *    - WiFi AP + HTTP + SPIFFS SPA + user store + CSV logs REMOVED.
- *      The web platform is now hosted online. This firmware only exposes
- *      a BLE GATT service the browser subscribes to via Web Bluetooth.
- *    - Compact JSON packets on notify characteristic (<= 240 bytes to fit MTU).
+ *  Pairs with the web platform (https://ulcershield-ai.vercel.app) over
+ *  Web Bluetooth. No WiFi, no app: the browser connects straight to the ESP32.
+ *
+ *  v5.1 -- pairing fixes
+ *    - Device name now goes in the scan response. In v5 it overflowed the
+ *      31-byte advertisement (flags + 128-bit UUID + name = 37 B) and was
+ *      dropped, so the browser listed an unnamed device.
+ *    - The ESP32 requests a 247-byte MTU itself on connect. Phones that never
+ *      negotiate (Android < 14) otherwise cut every JSON packet at 20 bytes.
+ *    - Keeps advertising while connected (up to 3 screens at once), and after
+ *      a disconnect, so a page reload can re-pair immediately.
+ *    - Sends a status event + fresh state the moment a browser subscribes.
+ *    - Failed mass calibration is reported as an "alert", not as success.
+ *    - JSON is built with snprintf (ArduinoJson no longer needed).
+ *    - Status LED: blinking = waiting for a browser, solid = paired.
  *
  *  GATT layout (must match platform/src/lib/sources/ble-source.ts):
  *    Service   0000fd00-1212-efde-1523-785feabcd123
- *      Notify  0000fd01-...abcd123   state packets (JSON)
+ *      Notify  0000fd01-...abcd123   state packets (JSON, 1 Hz)
  *      Write   0000fd02-...abcd123   commands (ASCII: cal_zero|cal_a|cal_b|reset)
  *      Notify  0000fd03-...abcd123   event packets (JSON)
  *
- *  State packet (JSON):
+ *  State packet:
  *  {"u":<uptime_s>,
  *   "l":[n,mmhg,g,peak,sat,loaded],
  *   "r":[n,mmhg,g,peak,sat,loaded],
  *   "c":<cop>, "t":<turns>, "st":<since_turn_min>,
  *   "b":<body_c|null>, "h":<humidity|null>, "occ":0|1}
  *
- *  Serial commands still available (115200 baud):
+ *  Event packet:  {"k":"turn|calibration|reset|alert|connect","x":"<text>","u":<s>}
+ *
+ *  Pairing:
+ *    1. Flash this sketch, open Serial Monitor (115200) -> "[BLE] advertising".
+ *    2. Open the platform in Chrome / Edge (desktop or Android), sign in,
+ *       go to Device -> Pair device, pick "UlcerShield-01".
+ *    Do NOT pair the ESP32 from the OS Bluetooth settings; the browser
+ *    connects to it directly. iOS Safari has no Web Bluetooth.
+ *
+ *  Serial commands (115200 baud):
  *    c = zero calibration      1 = cal zone A       2 = cal zone B
- *    r = reset turn counter    m = print pressure map
- *    ? = print calibration constants
+ *    r = reset turn counter    ? = BLE status + calibration constants
  *
  *  Required libraries:
- *    - NimBLE-Arduino  (by h2zero)
- *    - ArduinoJson     (by Benoit Blanchon)
- *    - DHT sensor library (by Adafruit)
+ *    - NimBLE-Arduino 2.x  (by h2zero)
+ *    - DHT sensor library  (by Adafruit)
  *    - Adafruit MLX90614 Library
  *
  *  NOT a certified medical device.
@@ -41,16 +58,29 @@
 #include <DHT.h>
 #include <Adafruit_MLX90614.h>
 #include <NimBLEDevice.h>
-#include <ArduinoJson.h>
+#if defined(CONFIG_NIMBLE_CPP_IDF)
+#  include "host/ble_gatt.h"
+#else
+#  include "nimble/nimble/host/include/host/ble_gatt.h"
+#endif
 
 // ==========================================================================
-//  BLE UUIDs
+//  Device identity + BLE UUIDs
 // ==========================================================================
+#define FW_VERSION        "5.1"
+// One name per bed. Keep the "UlcerShield" prefix: the browser filters on it.
+// Max 29 characters (scan response limit).
+#define US_DEVICE_NAME    "UlcerShield-01"
+
 #define US_SERVICE_UUID   "0000fd00-1212-efde-1523-785feabcd123"
 #define US_STATE_UUID     "0000fd01-1212-efde-1523-785feabcd123"
 #define US_CMD_UUID       "0000fd02-1212-efde-1523-785feabcd123"
 #define US_EVENT_UUID     "0000fd03-1212-efde-1523-785feabcd123"
-#define US_DEVICE_NAME    "UlcerShield-01"
+
+const uint16_t BLE_MTU    = 247;   // 244-byte payload; state packets are < 200 B
+
+// On-board LED of most ESP32 DevKits. Set to -1 if GPIO 2 is used elsewhere.
+#define STATUS_LED_PIN    2
 
 // ==========================================================================
 //  Wiring + FSR model (unchanged from v4)
@@ -136,16 +166,21 @@ uint32_t tFast = 0, tDht = 0, tDose = 0, tNotify = 0;
 // ==========================================================================
 //  BLE
 // ==========================================================================
+NimBLEServer         *bleServer = nullptr;
 NimBLECharacteristic *stateChar = nullptr;
 NimBLECharacteristic *cmdChar   = nullptr;
 NimBLECharacteristic *eventChar = nullptr;
-bool bleConnected = false;
-volatile char pendingCmd = 0;   // 'z'=zero, 'a'=cal A, 'b'=cal B, 'r'=reset
+
+// Set from BLE callbacks (NimBLE host task), consumed in loop().
+volatile char pendingCmd   = 0;      // 'z'=zero, 'a'=cal A, 'b'=cal B, 'r'=reset
+volatile bool helloPending = false;  // a browser subscribed to events
+volatile bool statePending = false;  // a browser subscribed to state
 
 void registerTurn(const char* reason);
 void broadcastState();
 void broadcastEvent(const char* kind, const char* text);
-static float round1(float v);
+
+static bool bleLinked() { return bleServer && bleServer->getConnectedCount() > 0; }
 
 // ==========================================================================
 //  FSR reading (unchanged)
@@ -234,7 +269,7 @@ void registerTurn(const char* reason) {
   zoneA.dose = zoneB.dose = 0;
   zoneA.mmHgPeak = zoneA.mmHg;
   zoneB.mmHgPeak = zoneB.mmHg;
-  Serial.printf(">>> TURN #%lu (%s) CoP=%+0.2f\r\n", turnCount, reason, cop);
+  Serial.printf(">>> TURN #%lu (%s) CoP=%+0.2f\r\n", (unsigned long)turnCount, reason, cop);
   broadcastEvent("turn", reason);
 }
 
@@ -244,8 +279,17 @@ void updateDose(float dtMin) {
   if (zoneB.mmHg > P_CAPILLARY_MMHG) zoneB.dose += (zoneB.mmHg - P_CAPILLARY_MMHG) * dtMin;
 }
 
+void resetCounters() {
+  turnCount = 0;
+  lastTurnMs = lastTurnLogged = millis();
+  zoneA.dose = zoneB.dose = 0;
+  zoneA.mmHgPeak = zoneB.mmHgPeak = 0;
+  copRef = cop;
+  Serial.println(F("*** counters reset ***"));
+}
+
 // ==========================================================================
-//  Calibration (unchanged)
+//  Calibration
 // ==========================================================================
 void zeroCalibration() {
   Serial.println(F("\r\n--- ZERO: remove ALL load ---"));
@@ -265,17 +309,43 @@ void zeroCalibration() {
   }
 }
 
-void massCalibration(Zone &z) {
+bool massCalibration(Zone &z) {
   Serial.printf("--- CAL %s with %.2f kg ---\r\n", z.name, CAL_MASS_KG);
   delay(3000);
   uint32_t acc = 0;
   for (int i = 0; i < 32; i++) { acc += analogReadMilliVolts(z.pin); delay(10); }
   float r = mvToResistance(acc / 32);
-  if (isinf(r) || r > R_NO_LOAD) { Serial.println(F("FAILED: no load")); return; }
+  if (isinf(r) || r > R_NO_LOAD) { Serial.println(F("FAILED: no load")); return false; }
   float f = CAL_MASS_KG * 9.80665f;
   *z.calC = f * powf(r, FSR_N);
   z.primed = false;
   Serial.printf("C=%.0f\r\n", *z.calC);
+  return true;
+}
+
+// Runs in loop() so the BLE host task is never blocked by the calibration delays.
+void runPendingCommand() {
+  char cmd = pendingCmd;
+  if (!cmd) return;
+  pendingCmd = 0;
+  switch (cmd) {
+    case 'z':
+      zeroCalibration();
+      broadcastEvent("calibration", "zero");
+      break;
+    case 'a':
+      if (massCalibration(zoneA)) broadcastEvent("calibration", "left calibrated");
+      else                        broadcastEvent("alert", "left calibration failed: no load on the pad");
+      break;
+    case 'b':
+      if (massCalibration(zoneB)) broadcastEvent("calibration", "right calibrated");
+      else                        broadcastEvent("alert", "right calibration failed: no load on the pad");
+      break;
+    case 'r':
+      resetCounters();
+      broadcastEvent("reset", "counters reset");
+      break;
+  }
 }
 
 // ==========================================================================
@@ -283,117 +353,152 @@ void massCalibration(Zone &z) {
 // ==========================================================================
 class ServerCB : public NimBLEServerCallbacks {
   void onConnect(NimBLEServer* srv, NimBLEConnInfo& info) override {
-    bleConnected = true;
-    Serial.printf("[BLE] connected: %s\r\n", info.getAddress().toString().c_str());
-    broadcastEvent("connect", "browser paired");
+    Serial.printf("[BLE] connected: %s  (%u/%u screens)\r\n",
+                  info.getAddress().toString().c_str(),
+                  srv->getConnectedCount(), (unsigned)CONFIG_BT_NIMBLE_MAX_CONNECTIONS);
+    // Request the large MTU from our side too; Chrome on Android < 14 never
+    // asks, and at the default 23-byte MTU every packet is cut at 20 bytes.
+    ble_gattc_exchange_mtu(info.getConnHandle(), nullptr, nullptr);
+    // Advertising stops on connect. Restart it so another screen, or the same
+    // browser after a page reload, can connect without waiting for a timeout.
+    if (srv->getConnectedCount() < CONFIG_BT_NIMBLE_MAX_CONNECTIONS) NimBLEDevice::startAdvertising();
   }
   void onDisconnect(NimBLEServer* srv, NimBLEConnInfo& info, int reason) override {
-    bleConnected = false;
-    Serial.printf("[BLE] disconnected (reason %d), restarting advertising\r\n", reason);
-    NimBLEDevice::startAdvertising();
+    // Advertising restarts automatically (advertiseOnDisconnect).
+    Serial.printf("[BLE] disconnected: %s  reason 0x%02X\r\n",
+                  info.getAddress().toString().c_str(), reason);
+  }
+  void onMTUChange(uint16_t mtu, NimBLEConnInfo& info) override {
+    Serial.printf("[BLE] MTU %u\r\n", mtu);
+    if (mtu < 200) Serial.println(F("[BLE] WARNING: MTU too small, JSON packets will be truncated"));
   }
 };
 
 class CmdCB : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic* c, NimBLEConnInfo& info) override {
     std::string v = c->getValue();
+    while (!v.empty() && isspace((unsigned char)v.back())) v.pop_back();
     Serial.printf("[BLE] cmd: %s\r\n", v.c_str());
     if      (v == "cal_zero") pendingCmd = 'z';
     else if (v == "cal_a")    pendingCmd = 'a';
     else if (v == "cal_b")    pendingCmd = 'b';
     else if (v == "reset")    pendingCmd = 'r';
+    else Serial.println(F("[BLE] unknown command"));
   }
 };
 
-void runPendingCommand() {
-  char cmd = pendingCmd;
-  if (!cmd) return;
-  pendingCmd = 0;
-  switch (cmd) {
-    case 'z': zeroCalibration();      broadcastEvent("calibration", "zero");             break;
-    case 'a': massCalibration(zoneA); broadcastEvent("calibration", "left calibrated");  break;
-    case 'b': massCalibration(zoneB); broadcastEvent("calibration", "right calibrated"); break;
-    case 'r':
-      turnCount = 0;
-      lastTurnMs = lastTurnLogged = millis();
-      zoneA.dose = zoneB.dose = 0;
-      zoneA.mmHgPeak = zoneB.mmHgPeak = 0;
-      copRef = cop;
-      broadcastEvent("reset", "counters reset");
-      break;
+class NotifyCB : public NimBLECharacteristicCallbacks {
+  void onSubscribe(NimBLECharacteristic* c, NimBLEConnInfo& info, uint16_t subValue) override {
+    if (!subValue) return;
+    if (c == eventChar) helloPending = true;
+    else                statePending = true;
   }
-}
+};
 
 // ==========================================================================
-//  BLE broadcast (compact JSON)
+//  BLE broadcast (fixed-format JSON)
 // ==========================================================================
 static float safeNum(float v) { return (isnan(v) || isinf(v)) ? 0.0f : v; }
 
+static void fmtZone(char* out, size_t n, const Zone &z) {
+  snprintf(out, n, "[%.1f,%.1f,%.1f,%.1f,%d,%d]",
+           safeNum(z.forceN), safeNum(z.mmHg), safeNum(z.grams), safeNum(z.mmHgPeak),
+           z.saturated ? 1 : 0, z.loaded ? 1 : 0);
+}
+
+static void fmtOptional(char* out, size_t n, bool ok, float v, const char* fmt) {
+  if (ok && !isnan(v) && !isinf(v)) snprintf(out, n, fmt, v);
+  else                              snprintf(out, n, "null");
+}
+
 void broadcastState() {
-  if (!bleConnected || !stateChar) return;
+  if (!stateChar || !bleLinked()) return;
 
-  StaticJsonDocument<256> doc;
-  doc["u"]  = (uint32_t)((millis() - bootMs) / 1000);
-  doc["c"]  = safeNum(cop);
-  doc["t"]  = turnCount;
-  doc["st"] = safeNum((millis() - lastTurnMs) / 60000.0f);
-  doc["b"]  = (mlxOK && !isnan(skinT))     ? JsonVariant(skinT)    : JsonVariant();
-  doc["h"]  = (dhtOK && !isnan(humidity))  ? JsonVariant(humidity) : JsonVariant();
-  doc["occ"] = occupied ? 1 : 0;
+  char l[48], r[48], b[16], h[16];
+  fmtZone(l, sizeof(l), zoneA);
+  fmtZone(r, sizeof(r), zoneB);
+  fmtOptional(b, sizeof(b), mlxOK, skinT,    "%.2f");
+  fmtOptional(h, sizeof(h), dhtOK, humidity, "%.1f");
 
-  JsonArray l = doc.createNestedArray("l");
-  l.add(round1(zoneA.forceN));
-  l.add(round1(zoneA.mmHg));
-  l.add(round1(zoneA.grams));
-  l.add(round1(zoneA.mmHgPeak));
-  l.add(zoneA.saturated ? 1 : 0);
-  l.add(zoneA.loaded    ? 1 : 0);
-
-  JsonArray r = doc.createNestedArray("r");
-  r.add(round1(zoneB.forceN));
-  r.add(round1(zoneB.mmHg));
-  r.add(round1(zoneB.grams));
-  r.add(round1(zoneB.mmHgPeak));
-  r.add(zoneB.saturated ? 1 : 0);
-  r.add(zoneB.loaded    ? 1 : 0);
-
-  char buf[256];
-  size_t n = serializeJson(doc, buf, sizeof(buf));
-  stateChar->setValue((uint8_t*)buf, n);
+  // "st" is rounded to 0.1 min on purpose: the platform resets its own
+  // since-turn timer when it sees st == 0 together with a new turn count.
+  char buf[240];
+  int n = snprintf(buf, sizeof(buf),
+                   "{\"u\":%lu,\"l\":%s,\"r\":%s,\"c\":%.3f,\"t\":%lu,\"st\":%.1f,"
+                   "\"b\":%s,\"h\":%s,\"occ\":%d}",
+                   (unsigned long)((millis() - bootMs) / 1000), l, r, safeNum(cop),
+                   (unsigned long)turnCount, (millis() - lastTurnMs) / 60000.0f,
+                   b, h, occupied ? 1 : 0);
+  if (n <= 0 || n >= (int)sizeof(buf)) return;
+  stateChar->setValue((const uint8_t*)buf, n);
   stateChar->notify();
 }
 
+// `text` must not contain quotes or backslashes (it is not JSON-escaped).
 void broadcastEvent(const char* kind, const char* text) {
-  if (!bleConnected || !eventChar) return;
-  StaticJsonDocument<128> doc;
-  doc["k"] = kind;
-  doc["x"] = text;
-  doc["u"] = (uint32_t)((millis() - bootMs) / 1000);
-  char buf[128];
-  size_t n = serializeJson(doc, buf, sizeof(buf));
-  eventChar->setValue((uint8_t*)buf, n);
+  if (!eventChar || !bleLinked()) return;
+  char buf[200];
+  int n = snprintf(buf, sizeof(buf), "{\"k\":\"%s\",\"x\":\"%s\",\"u\":%lu}",
+                   kind, text, (unsigned long)((millis() - bootMs) / 1000));
+  if (n <= 0 || n >= (int)sizeof(buf)) return;
+  eventChar->setValue((const uint8_t*)buf, n);
   eventChar->notify();
 }
 
-static float round1(float v) { return roundf(v * 10.0f) / 10.0f; }
+// First thing a newly paired browser sees in its event timeline.
+void broadcastHello() {
+  char text[120];
+  snprintf(text, sizeof(text), "%s fw %s - skin temp %s, humidity %s - %u screen(s)",
+           US_DEVICE_NAME, FW_VERSION,
+           mlxOK ? "ok" : "MISSING", dhtOK ? "ok" : "MISSING",
+           bleServer ? bleServer->getConnectedCount() : 0);
+  broadcastEvent("connect", text);
+}
+
+// ==========================================================================
+//  Status LED + serial diagnostics
+// ==========================================================================
+void updateStatusLed(uint32_t now) {
+#if STATUS_LED_PIN >= 0
+  bool on = bleLinked() || ((now / 500) % 2 == 0);
+  digitalWrite(STATUS_LED_PIN, on ? HIGH : LOW);
+#endif
+}
+
+void printStatus() {
+  Serial.println(F("\r\n--- STATUS ---"));
+  Serial.printf("  firmware : v%s\r\n", FW_VERSION);
+  Serial.printf("  BLE name : %s   MAC %s\r\n", US_DEVICE_NAME,
+                NimBLEDevice::getAddress().toString().c_str());
+  Serial.printf("  screens  : %u connected (max %u)\r\n",
+                bleServer ? bleServer->getConnectedCount() : 0,
+                (unsigned)CONFIG_BT_NIMBLE_MAX_CONNECTIONS);
+  Serial.printf("  sensors  : MLX90614 %s, DHT22 %s\r\n",
+                mlxOK ? "ok" : "MISSING", dhtOK ? "ok" : "MISSING");
+  Serial.printf("  F = C / R^%.2f   C_A = %.0f   C_B = %.0f\r\n", FSR_N, fsrC_A, fsrC_B);
+  Serial.println(F("--------------"));
+}
 
 // ==========================================================================
 //  Setup / loop
 // ==========================================================================
 void setupBLE() {
   NimBLEDevice::init(US_DEVICE_NAME);
-  NimBLEDevice::setPower(ESP_PWR_LVL_P7);
-  NimBLEDevice::setMTU(247);
+  NimBLEDevice::setPower(9);          // dBm, ESP32 maximum
+  NimBLEDevice::setMTU(BLE_MTU);
 
-  NimBLEServer *srv = NimBLEDevice::createServer();
-  srv->setCallbacks(new ServerCB());
+  bleServer = NimBLEDevice::createServer();
+  bleServer->setCallbacks(new ServerCB());
+  bleServer->advertiseOnDisconnect(true);
 
-  NimBLEService *svc = srv->createService(US_SERVICE_UUID);
+  NimBLEService *svc = bleServer->createService(US_SERVICE_UUID);
+  static NotifyCB notifyCB;
 
   stateChar = svc->createCharacteristic(
     US_STATE_UUID,
     NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
   );
+  stateChar->setCallbacks(&notifyCB);
 
   cmdChar = svc->createCharacteristic(
     US_CMD_UUID,
@@ -405,22 +510,31 @@ void setupBLE() {
     US_EVENT_UUID,
     NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
   );
+  eventChar->setCallbacks(&notifyCB);
 
-  svc->start();
+  // No svc->start(): NimBLE 2.x starts the GATT server when advertising starts.
 
+  // Order matters: with the scan response enabled first, setName() puts the
+  // name there. Otherwise it is appended to the advertisement, where the
+  // 128-bit service UUID leaves no room, and is silently dropped.
   NimBLEAdvertising *adv = NimBLEDevice::getAdvertising();
+  adv->enableScanResponse(true);
   adv->addServiceUUID(US_SERVICE_UUID);
   adv->setName(US_DEVICE_NAME);
-  adv->enableScanResponse(true);
   NimBLEDevice::startAdvertising();
 
-  Serial.println(F("[BLE] advertising as UlcerShield-01"));
+  Serial.printf("[BLE] advertising as %s  (MAC %s)\r\n",
+                US_DEVICE_NAME, NimBLEDevice::getAddress().toString().c_str());
 }
 
 void setup() {
   Serial.begin(115200);
   delay(400);
-  Serial.println(F("\r\nUlcerShield BLE peripheral v5"));
+  Serial.printf("\r\nUlcerShield BLE peripheral v%s\r\n", FW_VERSION);
+
+#if STATUS_LED_PIN >= 0
+  pinMode(STATUS_LED_PIN, OUTPUT);
+#endif
 
   analogReadResolution(12);
   analogSetPinAttenuation(FSR1_PIN, ADC_11db);
@@ -442,19 +556,16 @@ void setup() {
 void loop() {
   uint32_t now = millis();
 
+  // Serial commands share the BLE command queue, so the platform sees the
+  // same calibration/reset events whichever side triggered them.
   while (Serial.available()) {
     char c = Serial.read();
     switch (c) {
-      case 'c': case 'C': zeroCalibration();      break;
-      case '1':           massCalibration(zoneA); break;
-      case '2':           massCalibration(zoneB); break;
-      case 'r': case 'R':
-        turnCount = 0;
-        lastTurnMs = lastTurnLogged = now;
-        zoneA.dose = zoneB.dose = 0;
-        zoneA.mmHgPeak = zoneB.mmHgPeak = 0;
-        copRef = cop;
-        break;
+      case 'c': case 'C': pendingCmd = 'z'; break;
+      case '1':           pendingCmd = 'a'; break;
+      case '2':           pendingCmd = 'b'; break;
+      case 'r': case 'R': pendingCmd = 'r'; break;
+      case '?':           printStatus();    break;
     }
   }
 
@@ -477,13 +588,18 @@ void loop() {
     }
   }
 
+  if (helloPending) { helloPending = false; broadcastHello(); }
+  if (statePending) { statePending = false; broadcastState(); tNotify = now; }
+
   if (now - tFast   >= T_FAST_MS)   { tFast   = now;
-    Serial.printf("L=%6.1f mmHg  R=%6.1f mmHg  CoP%+0.2f  T=%s  H=%s\r\n",
+    Serial.printf("L=%6.1f mmHg  R=%6.1f mmHg  CoP%+0.2f  T=%s  H=%s  BLE=%u\r\n",
                   zoneA.mmHg, zoneB.mmHg, cop,
                   mlxOK && !isnan(skinT) ? String(skinT,1).c_str() : "--",
-                  dhtOK && !isnan(humidity) ? String(humidity,0).c_str() : "--");
+                  dhtOK && !isnan(humidity) ? String(humidity,0).c_str() : "--",
+                  bleServer ? bleServer->getConnectedCount() : 0);
   }
   if (now - tNotify >= T_NOTIFY_MS) { tNotify = now; broadcastState(); }
 
+  updateStatusLed(now);
   delay(20);
 }

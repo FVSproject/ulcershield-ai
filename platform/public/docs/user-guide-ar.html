@@ -557,7 +557,7 @@
 
 <h3>الاقتران عبر بلوتوث منخفض الطاقة</h3>
 <p>متاح في Chrome وEdge وOpera على سطح المكتب وأندرويد. <strong>غير متاح على iOS Safari</strong> — Apple لم تدعم Web Bluetooth. تظهر شارة تحذير عند غياب الدعم.</p>
-<div class="step"><span class="n">1</span><div>احرق الفيرموير من <code>firmware/BedsorePredictorBLE.ino</code> على <span class="num">ESP32</span> (راجع القسم <span class="num">17</span>).</div></div>
+<div class="step"><span class="n">1</span><div>احرق الفيرموير من <code>firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino</code> على <span class="num">ESP32</span> (راجع القسم <span class="num">17</span>).</div></div>
 <div class="step"><span class="n">2</span><div>شغّل <span class="num">ESP32</span> ضمن نطاق البلوتوث (~<span class="num">10 m</span>).</div></div>
 <div class="step"><span class="n">3</span><div>اضغط <strong>اقتران الجهاز</strong>. المتصفح يفتح مربّع اقتران أصلي.</div></div>
 <div class="step"><span class="n">4</span><div>اختر <code>UlcerShield-01</code> من القائمة. مؤشّر الاتصال يصبح أخضر.</div></div>
@@ -717,7 +717,7 @@
 <section class="section" id="firmware">
 <h2><span class="num">17</span> · فيرموير ESP32 (BLE)</h2>
 
-<p>التنفيذ المرجعي في <code>firmware/BedsorePredictorBLE.ino</code>.</p>
+<p>التنفيذ المرجعي في <code>firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino</code>.</p>
 
 <h3>العتاد</h3>
 <ul>
@@ -729,8 +729,7 @@
 
 <h3>المكتبات المطلوبة (Arduino IDE)</h3>
 <ul>
-  <li>NimBLE-Arduino (h2zero).</li>
-  <li>ArduinoJson (Benoit Blanchon).</li>
+  <li>NimBLE-Arduino 2.x (h2zero).</li>
   <li>DHT sensor library (Adafruit).</li>
   <li>Adafruit MLX90614 Library.</li>
 </ul>

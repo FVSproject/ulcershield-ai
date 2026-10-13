@@ -543,7 +543,7 @@
 
 <h3>Bluetooth Low Energy pairing</h3>
 <p>Available in Chrome, Edge, and Opera on desktop and Android. <strong>Not available on iOS Safari</strong> — Apple has never shipped Web Bluetooth. A warning banner appears if the browser lacks support.</p>
-<div class="step"><span class="n">1</span><div>Flash the firmware at <code>firmware/BedsorePredictorBLE.ino</code> to your ESP32 (see §17).</div></div>
+<div class="step"><span class="n">1</span><div>Flash the firmware at <code>firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino</code> to your ESP32 (see §17).</div></div>
 <div class="step"><span class="n">2</span><div>Power on the ESP32 within Bluetooth range (~10 m).</div></div>
 <div class="step"><span class="n">3</span><div>Click <strong>Pair device</strong>. The browser opens a native pairing dialog.</div></div>
 <div class="step"><span class="n">4</span><div>Select <code>UlcerShield-01</code> from the list. The connection indicator turns green.</div></div>
@@ -703,7 +703,7 @@
 <section class="section" id="firmware">
 <h2>17 · ESP32 firmware (BLE)</h2>
 
-<p>Reference implementation at <code>firmware/BedsorePredictorBLE.ino</code>.</p>
+<p>Reference implementation at <code>firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino</code>.</p>
 
 <h3>Hardware</h3>
 <ul>
@@ -715,8 +715,7 @@
 
 <h3>Required libraries (Arduino IDE)</h3>
 <ul>
-  <li>NimBLE-Arduino (h2zero).</li>
-  <li>ArduinoJson (Benoit Blanchon).</li>
+  <li>NimBLE-Arduino 2.x (h2zero).</li>
   <li>DHT sensor library (Adafruit).</li>
   <li>Adafruit MLX90614 Library.</li>
 </ul>

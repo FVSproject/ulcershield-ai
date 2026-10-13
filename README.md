@@ -48,7 +48,7 @@ Set `ANTHROPIC_API_KEY` in the Vercel project settings.
 
 ## Firmware — BLE peripheral (v5)
 
-`firmware/BedsorePredictorBLE.ino` exposes a compact BLE GATT service:
+`firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino` exposes a compact BLE GATT service:
 
 | Char UUID (short) | Direction | Purpose                                     |
 |-------------------|-----------|---------------------------------------------|
@@ -60,18 +60,19 @@ Service UUID: `0000fd00-1212-efde-1523-785feabcd123`.
 
 ### Required libraries (Arduino IDE)
 
-- NimBLE-Arduino (h2zero)
-- ArduinoJson (Benoit Blanchon)
+- NimBLE-Arduino 2.x (h2zero)
 - DHT sensor library (Adafruit)
 - Adafruit MLX90614 Library
 
 ### Pair from the browser
 
-1. Flash `firmware/BedsorePredictorBLE.ino` to the ESP32.
+1. Flash `firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino` to the ESP32.
 2. Open the deployed platform in Chrome/Edge/Android.
 3. Sign in (or click "Continue as demo patient").
 4. Go to **Device → Pair device**.
 5. Pick `UlcerShield-01` from the browser's pairing dialog.
+
+The on-board LED blinks while the ESP32 waits for a browser and stays solid once paired. Don't pair it from the OS Bluetooth settings; the browser connects directly. Type `?` in the Serial Monitor (115200 baud) to print the BLE name, MAC, connected screens and sensor status. Up to 3 browsers can stay connected at once.
 
 ## Simulator
 

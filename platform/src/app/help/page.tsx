@@ -77,7 +77,7 @@ const ISSUES: Issue[] = [
     ],
     fix: [
       "Move within 5 m of the device and confirm the LED is on.",
-      "Re-flash the firmware from firmware/BedsorePredictorBLE.ino and reboot the ESP32.",
+      "Re-flash the firmware from firmware/BedsorePredictorBLE/BedsorePredictorBLE.ino and reboot the ESP32.",
       "Disconnect the ESP32 from any other client (phone, tablet) and retry.",
     ],
   },
