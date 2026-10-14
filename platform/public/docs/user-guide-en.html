@@ -711,6 +711,7 @@
   <li>Two Force-Sensitive Resistors (FSR402 or similar) with 10 kΩ voltage divider each. Wired to GPIO 34 (left) and GPIO 35 (right).</li>
   <li>DHT22 humidity sensor on GPIO 4 with a 10 kΩ pull-up.</li>
   <li>MLX90614 IR temperature sensor on I²C (SDA = GPIO 21, SCL = GPIO 22).</li>
+  <li>Demo bed v2: MG996R tilt servo, signal on GPIO 13, powered from its own 5–6 V supply (≥ 3 A) with GND shared with the ESP32. The tray rolls half the clinical angle (40° → 20°). Firmware v5.2+.</li>
 </ul>
 
 <h3>Required libraries (Arduino IDE)</h3>
@@ -736,6 +737,7 @@
   <li><code>1</code> — mass calibration, zone A.</li>
   <li><code>2</code> — mass calibration, zone B.</li>
   <li><code>r</code> — reset turn counter and doses.</li>
+  <li><code>&lt;</code> / <code>&gt;</code> / <code>0</code> — tilt the bed left 30° / right 30° / flat.</li>
 </ul>
 </section>
 

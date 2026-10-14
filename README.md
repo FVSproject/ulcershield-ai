@@ -53,7 +53,7 @@ Set `ANTHROPIC_API_KEY` in the Vercel project settings.
 | Char UUID (short) | Direction | Purpose                                     |
 |-------------------|-----------|---------------------------------------------|
 | `fd01`            | notify    | JSON `state` packets (~1 Hz)                |
-| `fd02`            | write     | ASCII commands (`cal_zero`, `cal_a`, ...)   |
+| `fd02`            | write     | ASCII commands (`cal_zero`, `cal_a`, `tilt:30`, ...) |
 | `fd03`            | notify    | JSON `event` packets (turn, calibration…)   |
 
 Service UUID: `0000fd00-1212-efde-1523-785feabcd123`.
@@ -73,6 +73,17 @@ Service UUID: `0000fd00-1212-efde-1523-785feabcd123`.
 5. Pick `UlcerShield-01` from the browser's pairing dialog.
 
 The on-board LED blinks while the ESP32 waits for a browser and stays solid once paired. Don't pair it from the OS Bluetooth settings; the browser connects directly. Type `?` in the Serial Monitor (115200 baud) to print the BLE name, MAC, connected screens and sensor status. Up to 3 browsers can stay connected at once.
+
+### Bed tilt servo (demo bed v2)
+
+An MG996R rolls the bed's pillow tray on its long axis. This is the *Intervene* step: pressing **Apply** on a lateral-tilt recommendation (or accepting an escalation on the Evaluate card) tilts the bed, and the Controls card has manual **Left / Flat / Right** buttons.
+
+- `tilt:<deg>` takes the clinical angle, `+` = right side down, `0` = flat.
+- The demo tray only rolls ±20°, so it moves at half the clinical angle (30° → 15°, 40° → 20°). Change `TILT_SCALE` for a full-size bed.
+- It moves at 5°/s and a completed tilt counts as a turn.
+- Wiring: signal → GPIO 13; V+ → a separate 5–6 V supply (≥ 3 A); GND → supply GND **and** ESP32 GND. Powering it from the ESP32 5V pin browns out the board and drops Bluetooth.
+- If it rolls the wrong way set `SERVO_INVERT 1`; if the tray isn't level at Flat, trim `SERVO_CENTER_US`.
+- Serial: `<` tilt left 30°, `>` tilt right 30°, `0` flat.
 
 ## Simulator
 

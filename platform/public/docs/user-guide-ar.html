@@ -725,6 +725,7 @@
   <li>مقاومان حسّاسان للقوّة (<span class="num">FSR402</span> أو ما يماثل) مع مقسّم فولط <span class="num">10 kΩ</span>. متّصلان بـ<span class="num">GPIO 34</span> (يسار) و<span class="num">GPIO 35</span> (يمين).</li>
   <li>مستشعر رطوبة <span class="num">DHT22</span> على <span class="num">GPIO 4</span> مع مقاومة سحب <span class="num">10 kΩ</span>.</li>
   <li>مستشعر حرارة <span class="num">MLX90614</span> بالأشعة تحت الحمراء عبر I²C (<span class="num">SDA = GPIO 21, SCL = GPIO 22</span>).</li>
+  <li>سرير العرض v2: محرك إمالة <span class="num">MG996R</span>، إشارته على <span class="num">GPIO 13</span>، يُغذّى من مصدر مستقل <span class="num">5–6 V</span> (<span class="num">≥ 3 A</span>) مع توصيل أرضيّه بأرضي <span class="num">ESP32</span>. تميل الصينية نصف الزاوية السريرية (<span class="num">40° → 20°</span>). فيرموير <span class="num">v5.2</span> أو أحدث.</li>
 </ul>
 
 <h3>المكتبات المطلوبة (Arduino IDE)</h3>
@@ -750,6 +751,7 @@
   <li><code>1</code> — معايرة كتلة، المنطقة A.</li>
   <li><code>2</code> — معايرة كتلة، المنطقة B.</li>
   <li><code>r</code> — إعادة عدّاد التقليب والجرعات.</li>
+  <li><code>&lt;</code> / <code>&gt;</code> / <code>0</code> — إمالة السرير لليسار <span class="num">30°</span> / لليمين <span class="num">30°</span> / مستوٍ.</li>
 </ul>
 </section>
 

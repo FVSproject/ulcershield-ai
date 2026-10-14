@@ -1,10 +1,21 @@
 /*
  * ============================================================================
- *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5.1
+ *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5.2
  *  نظام التنبؤ المبكر بقرحة الفراش
  * ============================================================================
  *  Pairs with the web platform (https://ulcershield-ai.vercel.app) over
  *  Web Bluetooth. No WiFi, no app: the browser connects straight to the ESP32.
+ *
+ *  v5.2 -- bed tilt servo (demo bed v2)
+ *    - MG996R on GPIO 13 rolls the pillow tray on its long axis. This is the
+ *      "Intervene" step of the loop: applying a lateral-tilt recommendation
+ *      on the platform turns the patient automatically.
+ *    - Command "tilt:<deg>" takes the CLINICAL angle (+ = right side down,
+ *      0 = flat). The demo tray only rolls +-20 deg, so it moves at half the
+ *      clinical angle: 30 -> 15, 35 -> 17.5, 40 -> 20 deg (TILT_SCALE).
+ *    - Moves slowly (5 deg/s) and counts a completed tilt as a turn.
+ *    - State packets carry "tl" (current, clinical deg), "tt" (target,
+ *      clinical deg) and "tb" (current tray deg).
  *
  *  v5.1 -- pairing fixes
  *    - Device name now goes in the scan response. In v5 it overflowed the
@@ -22,7 +33,7 @@
  *  GATT layout (must match platform/src/lib/sources/ble-source.ts):
  *    Service   0000fd00-1212-efde-1523-785feabcd123
  *      Notify  0000fd01-...abcd123   state packets (JSON, 1 Hz)
- *      Write   0000fd02-...abcd123   commands (ASCII: cal_zero|cal_a|cal_b|reset)
+ *      Write   0000fd02-...abcd123   commands (ASCII: cal_zero|cal_a|cal_b|reset|tilt:<deg>)
  *      Notify  0000fd03-...abcd123   event packets (JSON)
  *
  *  State packet:
@@ -30,7 +41,8 @@
  *   "l":[n,mmhg,g,peak,sat,loaded],
  *   "r":[n,mmhg,g,peak,sat,loaded],
  *   "c":<cop>, "t":<turns>, "st":<since_turn_min>,
- *   "b":<body_c|null>, "h":<humidity|null>, "occ":0|1}
+ *   "b":<body_c|null>, "h":<humidity|null>, "occ":0|1,
+ *   "tl":<tilt>, "tt":<tilt_target>, "tb":<tray_deg>}   (tilt fields only with a servo)
  *
  *  Event packet:  {"k":"turn|calibration|reset|alert|connect","x":"<text>","u":<s>}
  *
@@ -44,6 +56,14 @@
  *  Serial commands (115200 baud):
  *    c = zero calibration      1 = cal zone A       2 = cal zone B
  *    r = reset turn counter    ? = BLE status + calibration constants
+ *    < = tilt left 30          > = tilt right 30    0 = flat
+ *
+ *  Servo wiring (MG996R):
+ *    signal (orange) -> GPIO 13
+ *    V+ (red)        -> separate 5-6 V supply, >= 3 A
+ *    GND (brown)     -> supply GND AND ESP32 GND (common ground)
+ *    Never power the servo from the ESP32 5V/3V3 pin: each move browns out
+ *    the board and drops the Bluetooth link.
  *
  *  Required libraries:
  *    - NimBLE-Arduino 2.x  (by h2zero)
@@ -67,7 +87,7 @@
 // ==========================================================================
 //  Device identity + BLE UUIDs
 // ==========================================================================
-#define FW_VERSION        "5.1"
+#define FW_VERSION        "5.2"
 // One name per bed. Keep the "UlcerShield" prefix: the browser filters on it.
 // Max 29 characters (scan response limit).
 #define US_DEVICE_NAME    "UlcerShield-01"
@@ -81,6 +101,20 @@ const uint16_t BLE_MTU    = 247;   // 244-byte payload; state packets are < 200 
 
 // On-board LED of most ESP32 DevKits. Set to -1 if GPIO 2 is used elsewhere.
 #define STATUS_LED_PIN    2
+
+// ==========================================================================
+//  Bed tilt servo (MG996R, demo bed v2: tray rolls +-20 deg, + = right down)
+// ==========================================================================
+#define SERVO_PIN         13       // -1 = no servo (tilt commands are rejected)
+#define SERVO_INVERT      0        // set to 1 if "tilt right" rolls the tray left
+
+const float SERVO_CENTER_US   = 1500.0f;          // pulse that holds the tray flat; trim per build
+const float SERVO_US_PER_DEG  = 2000.0f / 180.0f; // MG996R: ~500-2500 us over ~180 deg
+const float TILT_SCALE        = 0.5f;   // tray deg per clinical deg (40 clinical -> 20 tray)
+const float TILT_MAX_TRAY_DEG = 20.0f;  // mechanical limit of the v2 tray
+const float TILT_MAX_CLINICAL = 40.0f;  // EPUAP/NPUAP ceiling, same as the platform
+const float TILT_SPEED_DEG_S  = 5.0f;   // tray deg per second
+const float TILT_SERIAL_DEG   = 30.0f;  // clinical angle for the '<' / '>' serial keys
 
 // ==========================================================================
 //  Wiring + FSR model (unchanged from v4)
@@ -163,6 +197,11 @@ bool     occupied = false;
 uint32_t unoccupiedSince = 0, bootMs = 0;
 uint32_t tFast = 0, tDht = 0, tDose = 0, tNotify = 0;
 
+// Tilt: tray angles are physical degrees, the target is kept in clinical degrees.
+float    trayDeg = 0, trayTargetDeg = 0, tiltTargetClinical = 0;
+bool     tiltMoving = false;
+uint32_t tTilt = 0;
+
 // ==========================================================================
 //  BLE
 // ==========================================================================
@@ -175,8 +214,10 @@ NimBLECharacteristic *eventChar = nullptr;
 volatile char pendingCmd   = 0;      // 'z'=zero, 'a'=cal A, 'b'=cal B, 'r'=reset
 volatile bool helloPending = false;  // a browser subscribed to events
 volatile bool statePending = false;  // a browser subscribed to state
+volatile bool  tiltPending   = false; // "tilt:<deg>" received
+volatile float tiltPendingDeg = 0;    // clinical degrees, + = right side down
 
-void registerTurn(const char* reason);
+bool registerTurn(const char* reason);
 void broadcastState();
 void broadcastEvent(const char* kind, const char* text);
 
@@ -246,7 +287,9 @@ void updateTurnDetection() {
     unoccupiedSince = 0;
   }
   occupied = nowOccupied;
-  if (!occupied) { copPending = false; return; }
+  // While the bed is rolling the CoP sweeps on purpose; the tilt registers
+  // its own turn when it finishes.
+  if (!occupied || tiltMoving) { copPending = false; return; }
 
   if (fabs(cop - copRef) > COP_TURN_DELTA) {
     if (!copPending) { copPending = true; copPendingSince = now; copCandidate = cop; }
@@ -260,9 +303,9 @@ void updateTurnDetection() {
   }
 }
 
-void registerTurn(const char* reason) {
+bool registerTurn(const char* reason) {
   uint32_t now = millis();
-  if (now - lastTurnLogged < TURN_LOCKOUT_MS) return;
+  if (now - lastTurnLogged < TURN_LOCKOUT_MS) return false;
   turnCount++;
   lastTurnMs = lastTurnLogged = now;
   copRef = cop;
@@ -271,6 +314,7 @@ void registerTurn(const char* reason) {
   zoneB.mmHgPeak = zoneB.mmHg;
   Serial.printf(">>> TURN #%lu (%s) CoP=%+0.2f\r\n", (unsigned long)turnCount, reason, cop);
   broadcastEvent("turn", reason);
+  return true;
 }
 
 void updateDose(float dtMin) {
@@ -349,6 +393,58 @@ void runPendingCommand() {
 }
 
 // ==========================================================================
+//  Bed tilt
+// ==========================================================================
+void servoWriteTray(float deg) {
+#if SERVO_PIN >= 0
+  if (SERVO_INVERT) deg = -deg;
+  float us = SERVO_CENTER_US + deg * SERVO_US_PER_DEG;
+  ledcWrite(SERVO_PIN, (uint32_t)(us * 16384.0f / 20000.0f));   // 50 Hz, 14-bit duty
+#endif
+}
+
+static void describeTilt(char* out, size_t n, float clinical) {
+  if (fabsf(clinical) < 0.5f) snprintf(out, n, "bed flat");
+  else snprintf(out, n, "bed tilt %.0f deg %s", fabsf(clinical), clinical > 0 ? "right" : "left");
+}
+
+// `clinical` in degrees, + = right side down, 0 = flat. Non-blocking: the
+// tray is ramped toward the target from loop() by updateTilt().
+void startTilt(float clinical) {
+#if SERVO_PIN < 0
+  broadcastEvent("alert", "bed tilt requested but no servo is configured");
+#else
+  tiltTargetClinical = constrain(clinical, -TILT_MAX_CLINICAL, TILT_MAX_CLINICAL);
+  trayTargetDeg = constrain(tiltTargetClinical * TILT_SCALE, -TILT_MAX_TRAY_DEG, TILT_MAX_TRAY_DEG);
+  tiltMoving = fabsf(trayTargetDeg - trayDeg) > 0.05f;
+  Serial.printf("[TILT] target %+.0f clinical -> %+.1f tray deg\r\n",
+                tiltTargetClinical, trayTargetDeg);
+  statePending = true;   // let the dashboard show the new target right away
+#endif
+}
+
+void updateTilt(uint32_t now) {
+  // Cap the step so a blocking calibration doesn't become a sudden lurch.
+  float dt = fminf((now - tTilt) / 1000.0f, 0.1f);
+  tTilt = now;
+  if (!tiltMoving) return;
+
+  float step = TILT_SPEED_DEG_S * dt;
+  float diff = trayTargetDeg - trayDeg;
+  if (fabsf(diff) <= step) { trayDeg = trayTargetDeg; tiltMoving = false; }
+  else                     { trayDeg += (diff > 0) ? step : -step; }
+  servoWriteTray(trayDeg);
+
+  if (!tiltMoving) {
+    char reason[40];
+    describeTilt(reason, sizeof(reason), tiltTargetClinical);
+    // A completed tilt is a repositioning. Inside the turn lockout it still
+    // shows on the timeline, it just isn't counted twice.
+    if (!registerTurn(reason)) broadcastEvent("turn", reason);
+  }
+}
+
+// ==========================================================================
 //  BLE callbacks
 // ==========================================================================
 class ServerCB : public NimBLEServerCallbacks {
@@ -383,6 +479,13 @@ class CmdCB : public NimBLECharacteristicCallbacks {
     else if (v == "cal_a")    pendingCmd = 'a';
     else if (v == "cal_b")    pendingCmd = 'b';
     else if (v == "reset")    pendingCmd = 'r';
+    else if (v.rfind("tilt:", 0) == 0) {
+      const char* num = v.c_str() + 5;
+      char* end = nullptr;
+      float deg = strtof(num, &end);
+      if (end != num && *end == '\0' && isfinite(deg)) { tiltPendingDeg = deg; tiltPending = true; }
+      else Serial.println(F("[BLE] bad tilt command"));
+    }
     else Serial.println(F("[BLE] unknown command"));
   }
 };
@@ -420,15 +523,22 @@ void broadcastState() {
   fmtOptional(b, sizeof(b), mlxOK, skinT,    "%.2f");
   fmtOptional(h, sizeof(h), dhtOK, humidity, "%.1f");
 
+  // Tilt fields are omitted without a servo; the platform hides its bed controls then.
+  char tilt[48] = "";
+#if SERVO_PIN >= 0
+  snprintf(tilt, sizeof(tilt), ",\"tl\":%.1f,\"tt\":%.1f,\"tb\":%.1f",
+           trayDeg / TILT_SCALE, tiltTargetClinical, trayDeg);
+#endif
+
   // "st" is rounded to 0.1 min on purpose: the platform resets its own
   // since-turn timer when it sees st == 0 together with a new turn count.
   char buf[240];
   int n = snprintf(buf, sizeof(buf),
                    "{\"u\":%lu,\"l\":%s,\"r\":%s,\"c\":%.3f,\"t\":%lu,\"st\":%.1f,"
-                   "\"b\":%s,\"h\":%s,\"occ\":%d}",
+                   "\"b\":%s,\"h\":%s,\"occ\":%d%s}",
                    (unsigned long)((millis() - bootMs) / 1000), l, r, safeNum(cop),
                    (unsigned long)turnCount, (millis() - lastTurnMs) / 60000.0f,
-                   b, h, occupied ? 1 : 0);
+                   b, h, occupied ? 1 : 0, tilt);
   if (n <= 0 || n >= (int)sizeof(buf)) return;
   stateChar->setValue((const uint8_t*)buf, n);
   stateChar->notify();
@@ -476,6 +586,12 @@ void printStatus() {
   Serial.printf("  sensors  : MLX90614 %s, DHT22 %s\r\n",
                 mlxOK ? "ok" : "MISSING", dhtOK ? "ok" : "MISSING");
   Serial.printf("  F = C / R^%.2f   C_A = %.0f   C_B = %.0f\r\n", FSR_N, fsrC_A, fsrC_B);
+#if SERVO_PIN >= 0
+  Serial.printf("  bed tilt : tray %+.1f deg -> %+.1f (clinical target %+.0f), servo GPIO %d\r\n",
+                trayDeg, trayTargetDeg, tiltTargetClinical, SERVO_PIN);
+#else
+  Serial.println(F("  bed tilt : no servo configured"));
+#endif
   Serial.println(F("--------------"));
 }
 
@@ -536,6 +652,12 @@ void setup() {
   pinMode(STATUS_LED_PIN, OUTPUT);
 #endif
 
+#if SERVO_PIN >= 0
+  ledcAttach(SERVO_PIN, 50, 14);
+  servoWriteTray(0);     // start flat
+#endif
+  tTilt = millis();
+
   analogReadResolution(12);
   analogSetPinAttenuation(FSR1_PIN, ADC_11db);
   analogSetPinAttenuation(FSR2_PIN, ADC_11db);
@@ -566,10 +688,15 @@ void loop() {
       case '2':           pendingCmd = 'b'; break;
       case 'r': case 'R': pendingCmd = 'r'; break;
       case '?':           printStatus();    break;
+      case '<':           startTilt(-TILT_SERIAL_DEG); break;
+      case '>':           startTilt( TILT_SERIAL_DEG); break;
+      case '0':           startTilt(0);     break;
     }
   }
 
   runPendingCommand();
+  if (tiltPending) { tiltPending = false; startTilt(tiltPendingDeg); }
+  updateTilt(now);
 
   readZone(zoneA);
   readZone(zoneB);
