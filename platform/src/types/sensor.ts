@@ -21,6 +21,8 @@ export interface SensorState {
   humidity: number | null;
   bodyOk: boolean;
   humidityOk: boolean;
+  /** Skin-temperature calibration offset applied by the device (°C); null when it doesn't report one. */
+  tempOffsetC: number | null;
   /** Bed tilt reported by the device; null when it has no tilt servo (or in the simulator). */
   tilt: BedTilt | null;
   risk: number;

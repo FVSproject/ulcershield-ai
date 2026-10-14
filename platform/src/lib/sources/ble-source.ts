@@ -23,6 +23,7 @@ import { logger } from "@/lib/log";
  *   "t": <turns>,
  *   "st": <since_turn_min>,
  *   "b": <body_c or null>,
+ *   "bo": <skin-temp calibration offset °C>                (firmware v5.3+)
  *   "h": <humidity or null>,
  *   "occ": 0|1,
  *   "tl": <tilt deg>, "tt": <target deg>, "tb": <tray deg>   (firmware v5.2+ with a tilt servo)
@@ -134,12 +135,43 @@ export async function disconnectBle() {
   });
 }
 
-/** `tilt:<deg>` takes clinical degrees, + = right side down, 0 = flat (firmware v5.2+). */
-export type DeviceCommand = "cal_zero" | "cal_a" | "cal_b" | "reset" | `tilt:${number}`;
+/**
+ * `tilt:<deg>` takes clinical degrees, + = right side down, 0 = flat (firmware v5.2+).
+ * `temp_ref:<°C>` calibrates skin temperature against a thermometer (firmware v5.3+).
+ */
+export type DeviceCommand =
+  | "cal_zero"
+  | "cal_a"
+  | "cal_b"
+  | "reset"
+  | `tilt:${number}`
+  | `temp_ref:${number}`
+  | "temp_ref:clear";
 
 export async function sendCommand(cmd: DeviceCommand) {
   if (!cmdChar) throw new Error("Not connected");
   await cmdChar.writeValueWithoutResponse(encoder.encode(cmd));
+}
+
+/** Range the firmware accepts for a thermometer reference. */
+export const TEMP_REF_MIN_C = 30;
+export const TEMP_REF_MAX_C = 43;
+
+/** True when the paired device supports skin-temperature calibration. */
+export function canCalibrateTemp(): boolean {
+  const { source, connection, state } = useSensorStore.getState();
+  return source === "ble" && connection === "connected" && !!cmdChar && state?.tempOffsetC != null;
+}
+
+/**
+ * One-point skin-temperature calibration: `refC` is a thermometer reading taken
+ * while the sensor is on the skin; the device stores the offset. null clears it.
+ * Resolves false when no calibration-capable device is paired.
+ */
+export async function calibrateTemp(refC: number | null): Promise<boolean> {
+  if (!canCalibrateTemp()) return false;
+  await sendCommand(refC === null ? "temp_ref:clear" : `temp_ref:${Math.round(refC * 10) / 10}`);
+  return true;
 }
 
 /** True when the paired device reports a tilt servo. */
@@ -179,6 +211,7 @@ function onStateNotify(ev: Event) {
       bodyC: raw.b,
       humidity: raw.h,
       tilt: raw.tl != null ? { deg: raw.tl, targetDeg: raw.tt ?? raw.tl, trayDeg: raw.tb ?? raw.tl } : null,
+      tempOffsetC: raw.bo ?? null,
       turns: raw.t,
       sinceTurnMin: raw.st,
     });
@@ -240,6 +273,7 @@ interface BlePacket {
   b: number | null;
   h: number | null;
   occ: 0 | 1;
+  bo?: number;
   tl?: number;
   tt?: number;
   tb?: number;

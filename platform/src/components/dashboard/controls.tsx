@@ -1,11 +1,21 @@
 "use client";
 
-import { ArrowDownLeft, ArrowDownRight, Minus, RotateCcw, Scale, Weight, Zap } from "lucide-react";
+import { useState } from "react";
+import { ArrowDownLeft, ArrowDownRight, Minus, RotateCcw, Scale, Thermometer, Weight, Zap } from "lucide-react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useSensorStore } from "@/lib/store";
 import { useToasts } from "@/components/ui/toast";
-import { canTiltBed, sendCommand } from "@/lib/sources/ble-source";
+import {
+  TEMP_REF_MAX_C,
+  TEMP_REF_MIN_C,
+  calibrateTemp,
+  canCalibrateTemp,
+  canTiltBed,
+  sendCommand,
+} from "@/lib/sources/ble-source";
 import { useT, type DictKey } from "@/lib/i18n";
 import { useViewing } from "@/lib/viewing";
 import { recommendedTiltAngle } from "@/lib/tissue-twin";
@@ -61,6 +71,27 @@ export function Controls() {
   const t = useT();
   const tiltBed = useBedTilt();
   const tiltAngle = recommendedTiltAngle(patient);
+  const tempOffset = useSensorStore((s) => s.state?.tempOffsetC ?? null);
+  const [refC, setRefC] = useState("");
+
+  async function fireTempCal(clear: boolean) {
+    const ref = clear ? null : Number(refC);
+    if (ref !== null && !(ref >= TEMP_REF_MIN_C && ref <= TEMP_REF_MAX_C)) {
+      push({ kind: "warn", title: t("ct_temp_title"), body: t("ct_temp_invalid") });
+      return;
+    }
+    if (!canCalibrateTemp()) {
+      push({ kind: "info", title: t("ct_temp_title"), body: t("ct_temp_unavailable") });
+      return;
+    }
+    try {
+      await calibrateTemp(ref);
+      push({ kind: "ok", title: t("ct_command_sent"), body: t("ct_temp_title") });
+      setRefC("");
+    } catch (e) {
+      push({ kind: "danger", title: t("ct_command_failed"), body: (e as Error).message });
+    }
+  }
 
   function fireTilt(side: "left" | "right" | null) {
     if (!canTiltBed()) {
@@ -175,6 +206,54 @@ export function Controls() {
               );
             })}
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-[var(--c-border)] bg-[var(--c-surface-2)] p-3.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-[var(--c-text)]">
+              <Thermometer className="h-4 w-4 text-[var(--c-primary-2)]" />
+              {t("ct_temp_title")}
+            </span>
+            <span className="num truncate text-[11px] text-[var(--c-muted)]">
+              {tempOffset == null || tempOffset === 0
+                ? t("ct_temp_uncal")
+                : t("ct_temp_offset").replace("{v}", `${tempOffset > 0 ? "+" : ""}${tempOffset.toFixed(1)}`)}
+            </span>
+          </div>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-[var(--c-muted)]">{t("ct_temp_hint")}</p>
+          <form
+            className="mt-3 flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void fireTempCal(false);
+            }}
+          >
+            <Input
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              min={TEMP_REF_MIN_C}
+              max={TEMP_REF_MAX_C}
+              placeholder="36.8"
+              value={refC}
+              onChange={(e) => setRefC(e.target.value)}
+              aria-label={t("ct_temp_title")}
+              className="num h-9 w-24 px-3 py-2"
+            />
+            <span className="text-xs text-[var(--c-muted)]">°C</span>
+            <Button type="submit" size="sm" disabled={refC === ""}>
+              {t("ct_temp_calibrate")}
+            </Button>
+            {tempOffset != null && tempOffset !== 0 && (
+              <button
+                type="button"
+                onClick={() => void fireTempCal(true)}
+                className="text-[11px] text-[var(--c-muted)] underline underline-offset-2 hover:text-[var(--c-text)]"
+              >
+                {t("ct_temp_clear")}
+              </button>
+            )}
+          </form>
         </div>
       </CardBody>
     </Card>

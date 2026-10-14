@@ -77,6 +77,7 @@ export function stateFromRaw(prev: SensorState | null, raw: {
   bodyC?: number | null;
   humidity?: number | null;
   tilt?: BedTilt | null;
+  tempOffsetC?: number | null;
   turns?: number;
   turnTs?: number;
   /** Minutes since the last turn as reported by the device; overrides local tracking. */
@@ -129,6 +130,7 @@ export function stateFromRaw(prev: SensorState | null, raw: {
     bodyOk: raw.bodyC != null,
     humidityOk: raw.humidity != null,
     tilt: raw.tilt ?? null,
+    tempOffsetC: raw.tempOffsetC ?? null,
     risk: risk.score,
     riskLabel: risk.label,
     riskBreakdown: risk.breakdown,

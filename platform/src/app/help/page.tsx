@@ -102,6 +102,24 @@ const ISSUES: Issue[] = [
   },
   {
     category: "sensor",
+    code: "SENS-03",
+    title: "Temperature reads lower than a thermometer",
+    symptoms:
+      "With the ESP32 paired and the MLX90614 on the skin, the vitals card shows around 28–33 °C instead of about 36–37 °C.",
+    causes: [
+      "The MLX90614 measures skin surface temperature, which is normally a few °C below core body temperature, more so on hands and arms or in a cool room.",
+      "The device has not been calibrated against a thermometer yet (the card says 'skin reading, not calibrated').",
+      "The sensor is not flat against the skin, so it partly sees cooler air or fabric.",
+    ],
+    fix: [
+      "Hold the sensor flat on the skin for about a minute so the reading settles.",
+      "Take a thermometer reading at the same moment, enter it under Calibration & controls → Temperature calibration, and press Calibrate. The device stores the offset and keeps it after reboots.",
+      "Recalibrate if you move the sensor to a different body site; 'Clear' removes the calibration.",
+      "If calibration is refused because the offset is over 10 °C, the sensor is not reading skin; reposition it first.",
+    ],
+  },
+  {
+    category: "sensor",
     code: "SENS-01",
     title: "Dashboard shows 'no live data'",
     symptoms: "Cards show placeholders; the pressure graph does not move.",

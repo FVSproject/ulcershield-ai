@@ -12,6 +12,14 @@ export function Vitals() {
   const t = useT();
   const bodyC = state?.bodyC;
   const humidity = state?.humidity;
+  const tempOffset = state?.tempOffsetC ?? null;
+  // An uncalibrated MLX90614 reads skin surface temperature, a few °C below a thermometer.
+  const tempHint =
+    tempOffset == null
+      ? "MLX90614 · IR"
+      : tempOffset === 0
+      ? `MLX90614 · ${t("v_temp_uncal")}`
+      : `MLX90614 · ${t("v_temp_cal").replace("{v}", `${tempOffset > 0 ? "+" : ""}${tempOffset.toFixed(1)}`)}`;
 
   return (
     <Card>
@@ -23,7 +31,7 @@ export function Vitals() {
         <VitalRow
           icon={<HeartPulse className="h-4 w-4" />}
           label={t("v_body_temp")}
-          hint="MLX90614 · IR"
+          hint={tempHint}
           value={formatNumber(bodyC, 1)}
           unit="°C"
           tone={
