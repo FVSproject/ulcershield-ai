@@ -11,7 +11,7 @@ import { logger } from "@/lib/log";
  * GATT layout (must match the firmware):
  *   Service     UUID  0000fd00-1212-efde-1523-785feabcd123
  *     Notify    UUID  0000fd01-1212-efde-1523-785feabcd123  (JSON "state" packets)
- *     Write     UUID  0000fd02-1212-efde-1523-785feabcd123  (ASCII commands)
+ *     Write     UUID  0000fd02-1212-efde-1523-785feabcd123  (ASCII commands, see DeviceCommand)
  *     Notify    UUID  0000fd03-1212-efde-1523-785feabcd123  (JSON "event" packets)
  *
  * Notify payload (JSON, one per packet, <= 240 bytes to fit MTU):
@@ -24,7 +24,8 @@ import { logger } from "@/lib/log";
  *   "st": <since_turn_min>,
  *   "b": <body_c or null>,
  *   "h": <humidity or null>,
- *   "occ": 0|1
+ *   "occ": 0|1,
+ *   "tl": <tilt deg>, "tt": <target deg>, "tb": <tray deg>   (firmware v5.2+ with a tilt servo)
  * }
  *
  * The BLE payload is intentionally terse to fit in the 20–240 byte MTU.
@@ -113,14 +114,49 @@ export async function connectBle(): Promise<{ name: string }> {
   return { name: device.name ?? "UlcerShield" };
 }
 
+/**
+ * User-initiated disconnect. Leaves the connection "idle" rather than
+ * "disconnected" so SosMonitor doesn't treat it as a lost link.
+ */
 export async function disconnectBle() {
-  if (device?.gatt?.connected) device.gatt.disconnect();
-  handleDisconnect();
+  if (device) {
+    device.removeEventListener("gattserverdisconnected", handleDisconnect);
+    if (device.gatt?.connected) device.gatt.disconnect();
+  }
+  releaseDevice();
+  const store = useSensorStore.getState();
+  store.setConnection("idle");
+  store.pushEvent({
+    ts: Date.now(),
+    uptimeS: 0,
+    kind: "disconnect",
+    text: "Device disconnected by user",
+  });
 }
 
-export async function sendCommand(cmd: "cal_zero" | "cal_a" | "cal_b" | "reset") {
+/** `tilt:<deg>` takes clinical degrees, + = right side down, 0 = flat (firmware v5.2+). */
+export type DeviceCommand = "cal_zero" | "cal_a" | "cal_b" | "reset" | `tilt:${number}`;
+
+export async function sendCommand(cmd: DeviceCommand) {
   if (!cmdChar) throw new Error("Not connected");
   await cmdChar.writeValueWithoutResponse(encoder.encode(cmd));
+}
+
+/** True when the paired device reports a tilt servo. */
+export function canTiltBed(): boolean {
+  const { source, connection, state } = useSensorStore.getState();
+  return source === "ble" && connection === "connected" && !!cmdChar && state?.tilt != null;
+}
+
+/**
+ * Rolls the bed onto `side` by `angle` clinical degrees, or back to flat when
+ * `side` is null. Resolves false when no tilt-capable device is paired.
+ */
+export async function tiltBed(side: "left" | "right" | null, angle = 0): Promise<boolean> {
+  if (!canTiltBed()) return false;
+  const deg = side === null ? 0 : side === "right" ? angle : -angle;
+  await sendCommand(`tilt:${Math.round(deg)}`);
+  return true;
 }
 
 function onStateNotify(ev: Event) {
@@ -142,6 +178,7 @@ function onStateNotify(ev: Event) {
       cop: raw.c,
       bodyC: raw.b,
       humidity: raw.h,
+      tilt: raw.tl != null ? { deg: raw.tl, targetDeg: raw.tt ?? raw.tl, trayDeg: raw.tb ?? raw.tl } : null,
       turns: raw.t,
       sinceTurnMin: raw.st,
     });
@@ -169,6 +206,7 @@ function onEventNotify(ev: Event) {
   }
 }
 
+/** The link dropped on its own (out of range, power loss, reboot). */
 function handleDisconnect() {
   const store = useSensorStore.getState();
   store.setConnection("disconnected");
@@ -178,6 +216,13 @@ function handleDisconnect() {
     kind: "disconnect",
     text: "Device disconnected",
   });
+  releaseDevice();
+}
+
+function releaseDevice() {
+  // Detach first so a packet still in flight can't land on whatever source runs next.
+  stateChar?.removeEventListener("characteristicvaluechanged", onStateNotify);
+  eventChar?.removeEventListener("characteristicvaluechanged", onEventNotify);
   stateChar = null;
   cmdChar = null;
   eventChar = null;
@@ -195,6 +240,9 @@ interface BlePacket {
   b: number | null;
   h: number | null;
   occ: 0 | 1;
+  tl?: number;
+  tt?: number;
+  tb?: number;
 }
 
 function zoneFromArr(a: BlePacket["l"]): ZoneReading {

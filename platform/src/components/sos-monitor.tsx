@@ -13,7 +13,8 @@ import { computeTwin } from "@/lib/tissue-twin";
  * calls raiseSos() which persists + fires the popup for the current user.
  *
  * Detections (each with a debounce inside raiseSos so we don't spam):
- *  - BLE disconnect: connection was "connected", now is "idle" or "error".
+ *  - BLE disconnect: connection was "connected", now is "disconnected" (link lost,
+ *    not a user-initiated disconnect).
  *  - Sensor stale: state exists but lastMsgAt > 60s ago.
  *  - Critical band unhandled: primary.band === "critical" for > 3 min with
  *    no Apply in that window.
@@ -50,7 +51,8 @@ export function SosMonitor() {
       wasConnectedRef.current = true;
       return;
     }
-    if (wasConnectedRef.current && (connection === "idle" || connection === "disconnected")) {
+    // "idle" is a user-initiated disconnect (see disconnectBle); only a dropped link alarms.
+    if (wasConnectedRef.current && connection === "disconnected") {
       wasConnectedRef.current = false;
       void raiseSos({
         kind: "ble_disconnect",

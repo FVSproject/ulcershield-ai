@@ -19,6 +19,8 @@ export function startMockSource() {
   const store = useSensorStore.getState();
   if (store.source === "mock" && intervalId) return;
   stopMockSource();
+  // Taking over from a real device: don't let its last reading seed the simulator.
+  if (store.source !== "mock") useSensorStore.setState({ state: null, history: [] });
   store.setSource("mock", "Simulator");
   store.setConnection("connected");
   store.pushEvent({

@@ -21,6 +21,8 @@ export interface SensorState {
   humidity: number | null;
   bodyOk: boolean;
   humidityOk: boolean;
+  /** Bed tilt reported by the device; null when it has no tilt servo (or in the simulator). */
+  tilt: BedTilt | null;
   risk: number;
   riskLabel: RiskLevel;
   riskBreakdown: {
@@ -30,6 +32,14 @@ export interface SensorState {
     temperature: number;
     asymmetry: number;
   };
+}
+
+/** Angles in clinical degrees, + = right side down. */
+export interface BedTilt {
+  deg: number;
+  targetDeg: number;
+  /** Physical tray angle; the demo bed rolls a fraction of the clinical angle. */
+  trayDeg: number;
 }
 
 export type RiskLevel = "low" | "moderate" | "high" | "critical";

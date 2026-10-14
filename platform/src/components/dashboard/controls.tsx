@@ -1,12 +1,15 @@
 "use client";
 
-import { RotateCcw, Scale, Weight, Zap } from "lucide-react";
+import { ArrowDownLeft, ArrowDownRight, Minus, RotateCcw, Scale, Weight, Zap } from "lucide-react";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSensorStore } from "@/lib/store";
 import { useToasts } from "@/components/ui/toast";
-import { sendCommand } from "@/lib/sources/ble-source";
+import { canTiltBed, sendCommand } from "@/lib/sources/ble-source";
 import { useT, type DictKey } from "@/lib/i18n";
+import { useViewing } from "@/lib/viewing";
+import { recommendedTiltAngle } from "@/lib/tissue-twin";
+import { useBedTilt } from "@/lib/bed-tilt";
 
 interface Action {
   cmd: "cal_zero" | "cal_a" | "cal_b" | "reset";
@@ -52,8 +55,49 @@ const TONE: Record<Action["tone"], { bg: string; text: string; border: string; h
 
 export function Controls() {
   const source = useSensorStore((s) => s.source);
+  const tilt = useSensorStore((s) => s.state?.tilt ?? null);
+  const patient = useViewing((s) => s.viewing);
   const push = useToasts((s) => s.push);
   const t = useT();
+  const tiltBed = useBedTilt();
+  const tiltAngle = recommendedTiltAngle(patient);
+
+  function fireTilt(side: "left" | "right" | null) {
+    if (!canTiltBed()) {
+      push({ kind: "info", title: t("ct_tilt_title"), body: t("ct_tilt_unavailable") });
+      return;
+    }
+    void tiltBed(side, tiltAngle);
+  }
+
+  function position(deg: number) {
+    if (Math.abs(deg) < 0.5) return t("ct_tilt_flat");
+    return t("ct_tilt_pos")
+      .replace("{angle}", String(Math.round(Math.abs(deg))))
+      .replace("{side}", t(deg > 0 ? "twin_side_right" : "twin_side_left"));
+  }
+
+  const tiltStatus = !tilt
+    ? t("ct_tilt_none")
+    : [
+        position(tilt.deg) +
+          (Math.abs(tilt.targetDeg - tilt.deg) > 0.5 ? ` → ${position(tilt.targetDeg)}` : ""),
+        t("ct_tilt_tray").replace("{deg}", Math.abs(tilt.trayDeg).toFixed(1)),
+      ].join(" · ");
+
+  const tiltButtons: { side: "left" | "right" | null; label: string; icon: React.ReactNode }[] = [
+    {
+      side: "left",
+      label: t("ct_tilt_left").replace("{angle}", String(tiltAngle)),
+      icon: <ArrowDownLeft className="h-4 w-4" />,
+    },
+    { side: null, label: t("ct_tilt_flat"), icon: <Minus className="h-4 w-4" /> },
+    {
+      side: "right",
+      label: t("ct_tilt_right").replace("{angle}", String(tiltAngle)),
+      icon: <ArrowDownRight className="h-4 w-4" />,
+    },
+  ];
 
   async function fire(a: Action) {
     const label = t(a.labelKey);
@@ -106,6 +150,31 @@ export function Controls() {
               </button>
             );
           })}
+        </div>
+
+        <div className="rounded-2xl border border-[var(--c-border)] bg-[var(--c-surface-2)] p-3.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-[var(--c-text)]">{t("ct_tilt_title")}</span>
+            <span className="num truncate text-[11px] text-[var(--c-muted)]">{tiltStatus}</span>
+          </div>
+          {/* Physical directions: keep left on the left even in RTL layouts. */}
+          <div dir="ltr" className="mt-3 grid grid-cols-3 gap-2">
+            {tiltButtons.map((b) => {
+              const s = TONE[b.side === null ? "muted" : "primary"];
+              return (
+                <button
+                  key={b.side ?? "flat"}
+                  onClick={() => fireTilt(b.side)}
+                  className={`flex min-w-0 items-center justify-center gap-1.5 rounded-xl border ${s.border} ${s.bg} px-2 py-2.5 text-xs font-semibold transition-all duration-200 ${s.hover}`}
+                >
+                  <span className={s.text}>{b.icon}</span>
+                  <span dir="auto" className="truncate text-[var(--c-text)]">
+                    {b.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </CardBody>
     </Card>

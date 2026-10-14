@@ -1,4 +1,4 @@
-import type { SensorState, ZoneReading } from "@/types/sensor";
+import type { BedTilt, SensorState, ZoneReading } from "@/types/sensor";
 import { riskLevel } from "@/types/sensor";
 
 // Clinical thresholds (mirror of firmware constants)
@@ -76,6 +76,7 @@ export function stateFromRaw(prev: SensorState | null, raw: {
   cop?: number;
   bodyC?: number | null;
   humidity?: number | null;
+  tilt?: BedTilt | null;
   turns?: number;
   turnTs?: number;
   /** Minutes since the last turn as reported by the device; overrides local tracking. */
@@ -127,6 +128,7 @@ export function stateFromRaw(prev: SensorState | null, raw: {
     humidity: raw.humidity ?? null,
     bodyOk: raw.bodyC != null,
     humidityOk: raw.humidity != null,
+    tilt: raw.tilt ?? null,
     risk: risk.score,
     riskLabel: risk.label,
     riskBreakdown: risk.breakdown,

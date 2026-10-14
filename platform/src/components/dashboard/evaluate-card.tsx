@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useEvaluateStore, VERIFY_THRESHOLD_PCT } from "@/lib/evaluate-store";
 import { useToasts } from "@/components/ui/toast";
 import { useT } from "@/lib/i18n";
+import { useBedTilt } from "@/lib/bed-tilt";
 
 /**
  * Standalone "Evaluate" card — closed-loop verification of the last
@@ -26,6 +27,13 @@ export function EvaluateCard() {
   const acceptEscalation = useEvaluateStore((s) => s.acceptEscalation);
   const push = useToasts((s) => s.push);
   const t = useT();
+  const tiltBed = useBedTilt();
+
+  function applyEscalation() {
+    acceptEscalation();
+    const next = useEvaluateStore.getState().applied;
+    if (next?.side && next.angle) void tiltBed(next.side, next.angle);
+  }
 
   // Global 1-Hz tick so verification progresses even when the AI card is
   // scrolled off screen.
@@ -190,7 +198,7 @@ export function EvaluateCard() {
                         <Button
                           size="sm"
                           variant="primary"
-                          onClick={acceptEscalation}
+                          onClick={applyEscalation}
                           leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />}
                         >
                           {t("air_apply")}

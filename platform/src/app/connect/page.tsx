@@ -46,13 +46,17 @@ export default function ConnectPage() {
     setBusy(true);
     try {
       await disconnectBle();
+      startMockSource(); // keep the dashboard alive instead of freezing on the last reading
       push({ kind: "info", title: t("connect_disconnected_toast") });
     } finally {
       setBusy(false);
     }
   }
 
-  function useSimulator() {
+  async function useSimulator() {
+    // One source at a time: a paired device would otherwise keep streaming into the store.
+    const s = useSensorStore.getState();
+    if (s.source === "ble" && s.connection === "connected") await disconnectBle();
     startMockSource();
     push({ kind: "info", title: t("ct_sim_active"), body: t("connect_sim_toast") });
   }

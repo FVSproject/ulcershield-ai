@@ -13,6 +13,7 @@ import { useT } from "@/lib/i18n";
 import { useTwinI18n } from "@/lib/twin-i18n";
 import { useViewing } from "@/lib/viewing";
 import { useEvaluateStore } from "@/lib/evaluate-store";
+import { useBedTilt } from "@/lib/bed-tilt";
 
 const TONE = {
   info: { text: "var(--c-primary-2)", bg: "rgba(6,182,212,.10)" },
@@ -31,6 +32,7 @@ export function AiRecommendation() {
   const [showAngleWhy, setShowAngleWhy] = useState(false);
   const evaluateStatus = useEvaluateStore((s) => s.status);
   const startVerify = useEvaluateStore((s) => s.startVerify);
+  const tiltBed = useBedTilt();
 
   const rec = twin?.recommendation;
   const tone = TONE[rec?.tone ?? "info"];
@@ -54,6 +56,8 @@ export function AiRecommendation() {
       title: t("air_applied_toast"),
       body: formatted.title,
     });
+    // Intervene: a paired tilt bed carries out lateral recommendations itself.
+    if (rec?.side && rec.angleDegrees) void tiltBed(rec.side, rec.angleDegrees);
     setTimeout(() => setApplied(false), 6000);
   }
 
