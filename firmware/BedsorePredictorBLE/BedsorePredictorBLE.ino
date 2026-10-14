@@ -1,10 +1,17 @@
 /*
  * ============================================================================
- *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5.3
+ *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5.4
  *  نظام التنبؤ المبكر بقرحة الفراش
  * ============================================================================
  *  Pairs with the web platform (https://ulcershield-ai.vercel.app) over
  *  Web Bluetooth. No WiFi, no app: the browser connects straight to the ESP32.
+ *
+ *  v5.4 -- bed level + tilt range
+ *    - Level calibration: the tray was level at v5.3's "right 35" command, so
+ *      that servo position (TILT_LEVEL_TRIM_DEG) is now Flat. Fine-tune with
+ *      '[' / ']' in the Serial Monitor; the trim is saved in flash.
+ *    - A 35 deg clinical tilt now rolls the tray 25 deg (TILT_SCALE = 25/35):
+ *      30 -> 21.4, 40 -> 28.6. Tray travel limit raised from 20 to 30 deg.
  *
  *  v5.3 -- skin temperature
  *    - The MLX90614 measures SKIN temperature, normally 30-35 C, which is
@@ -68,6 +75,7 @@
  *    c = zero calibration      1 = cal zone A       2 = cal zone B
  *    r = reset turn counter    ? = BLE status + calibration constants
  *    < = tilt left 30          > = tilt right 30    0 = flat
+ *    [ / ] = shift the level point left / right by 0.5 deg (saved)
  *
  *  Servo wiring (MG996R):
  *    signal (orange) -> GPIO 13
@@ -99,7 +107,7 @@
 // ==========================================================================
 //  Device identity + BLE UUIDs
 // ==========================================================================
-#define FW_VERSION        "5.3"
+#define FW_VERSION        "5.4"
 // One name per bed. Keep the "UlcerShield" prefix: the browser filters on it.
 // Max 29 characters (scan response limit).
 #define US_DEVICE_NAME    "UlcerShield-01"
@@ -115,15 +123,20 @@ const uint16_t BLE_MTU    = 247;   // 244-byte payload; state packets are < 200 
 #define STATUS_LED_PIN    2
 
 // ==========================================================================
-//  Bed tilt servo (MG996R, demo bed v2: tray rolls +-20 deg, + = right down)
+//  Bed tilt servo (MG996R, demo bed v2, + = right side down)
 // ==========================================================================
 #define SERVO_PIN         13       // -1 = no servo (tilt commands are rejected)
 #define SERVO_INVERT      0        // set to 1 if "tilt right" rolls the tray left
 
-const float SERVO_CENTER_US   = 1500.0f;          // pulse that holds the tray flat; trim per build
+const float SERVO_CENTER_US   = 1500.0f;          // nominal servo centre
 const float SERVO_US_PER_DEG  = 2000.0f / 180.0f; // MG996R: ~500-2500 us over ~180 deg
-const float TILT_SCALE        = 0.5f;   // tray deg per clinical deg (40 clinical -> 20 tray)
-const float TILT_MAX_TRAY_DEG = 20.0f;  // mechanical limit of the v2 tray
+// Servo degrees (before SERVO_INVERT) that hold the tray level. Measured on
+// the Fab Lab bed: v5.3's "right 35" (17.5 deg) was the level position.
+// Fine-tune with '[' / ']' in the Serial Monitor; the result is saved in flash.
+const float TILT_LEVEL_TRIM_DEG = 17.5f;
+const float TILT_TRIM_STEP_DEG  = 0.5f;
+const float TILT_SCALE        = 25.0f / 35.0f; // tray deg per clinical deg: 35 -> 25, 30 -> 21.4, 40 -> 28.6
+const float TILT_MAX_TRAY_DEG = 30.0f;  // tray travel limit; lower it if the tray touches the frame
 const float TILT_MAX_CLINICAL = 40.0f;  // EPUAP/NPUAP ceiling, same as the platform
 const float TILT_SPEED_DEG_S  = 5.0f;   // tray deg per second
 const float TILT_SERIAL_DEG   = 30.0f;  // clinical angle for the '<' / '>' serial keys
@@ -227,6 +240,7 @@ uint32_t tFast = 0, tDht = 0, tDose = 0, tNotify = 0;
 
 // Tilt: tray angles are physical degrees, the target is kept in clinical degrees.
 float    trayDeg = 0, trayTargetDeg = 0, tiltTargetClinical = 0;
+float    tiltTrimDeg = TILT_LEVEL_TRIM_DEG;   // loaded from flash in setup()
 bool     tiltMoving = false;
 uint32_t tTilt = 0;
 
@@ -498,10 +512,22 @@ void runPendingCommand() {
 // ==========================================================================
 void servoWriteTray(float deg) {
 #if SERVO_PIN >= 0
+  deg += tiltTrimDeg;            // level offset, applied before the direction flip
   if (SERVO_INVERT) deg = -deg;
   float us = SERVO_CENTER_US + deg * SERVO_US_PER_DEG;
   ledcWrite(SERVO_PIN, (uint32_t)(us * 16384.0f / 20000.0f));   // 50 Hz, 14-bit duty
 #endif
+}
+
+// Shifts the level point and saves it. The tray moves with it right away, so
+// press Flat first and nudge until it sits level.
+void nudgeTiltTrim(float step) {
+  tiltTrimDeg += step;
+  prefs.begin("ulcershield", false);
+  prefs.putFloat("tTrim", tiltTrimDeg);
+  prefs.end();
+  servoWriteTray(trayDeg);
+  Serial.printf("[TILT] level trim %+.1f servo deg (saved)\r\n", tiltTrimDeg);
 }
 
 static void describeTilt(char* out, size_t n, float clinical) {
@@ -704,6 +730,8 @@ void printStatus() {
 #if SERVO_PIN >= 0
   Serial.printf("  bed tilt : tray %+.1f deg -> %+.1f (clinical target %+.0f), servo GPIO %d\r\n",
                 trayDeg, trayTargetDeg, tiltTargetClinical, SERVO_PIN);
+  Serial.printf("  level    : trim %+.1f servo deg ('[' / ']' to adjust), scale %.3f tray/clinical\r\n",
+                tiltTrimDeg, TILT_SCALE);
 #else
   Serial.println(F("  bed tilt : no servo configured"));
 #endif
@@ -767,9 +795,16 @@ void setup() {
   pinMode(STATUS_LED_PIN, OUTPUT);
 #endif
 
+  // Calibrations kept in flash: skin-temperature offset and bed level trim.
+  prefs.begin("ulcershield", true);
+  tempOffsetC = prefs.getFloat("tOff", 0.0f);
+  tiltTrimDeg = prefs.getFloat("tTrim", TILT_LEVEL_TRIM_DEG);
+  prefs.end();
+  Serial.printf("[OK]   skin temp offset %+.2f C, bed level trim %+.1f deg\r\n", tempOffsetC, tiltTrimDeg);
+
 #if SERVO_PIN >= 0
   ledcAttach(SERVO_PIN, 50, 14);
-  servoWriteTray(0);     // start flat
+  servoWriteTray(0);     // start level
 #endif
   tTilt = millis();
 
@@ -781,10 +816,6 @@ void setup() {
   Wire.begin(I2C_SDA, I2C_SCL);
   mlxOK = mlx.begin();
   Serial.println(mlxOK ? F("[OK]   MLX90614") : F("[FAIL] MLX90614"));
-  prefs.begin("ulcershield", true);
-  tempOffsetC = prefs.getFloat("tOff", 0.0f);
-  prefs.end();
-  Serial.printf("[OK]   skin temp offset %+.2f C\r\n", tempOffsetC);
   dhtOK = !isnan(dht.readHumidity());
   Serial.println(dhtOK ? F("[OK]   DHT22") : F("[WARN] DHT22"));
 
@@ -810,6 +841,10 @@ void loop() {
       case '<':           startTilt(-TILT_SERIAL_DEG); break;
       case '>':           startTilt( TILT_SERIAL_DEG); break;
       case '0':           startTilt(0);     break;
+#if SERVO_PIN >= 0
+      case '[':           nudgeTiltTrim(-TILT_TRIM_STEP_DEG); break;
+      case ']':           nudgeTiltTrim( TILT_TRIM_STEP_DEG); break;
+#endif
     }
   }
 

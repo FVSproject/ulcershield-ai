@@ -96,8 +96,9 @@ const ISSUES: Issue[] = [
     fix: [
       "Flash firmware v5.2+ and re-pair; type ? in the Serial Monitor to confirm 'bed tilt' shows servo GPIO 13.",
       "Power the servo from its own 5–6 V supply (≥ 3 A) and tie its GND to the ESP32 GND.",
-      "If the direction is reversed, set SERVO_INVERT to 1; if the tray is not level at Flat, trim SERVO_CENTER_US.",
-      "The demo tray rolls half the clinical angle (40° clinical = 20° tray); this is expected.",
+      "If the direction is reversed, set SERVO_INVERT to 1.",
+      "If the tray is not level at Flat, press Flat, then press [ or ] in the Serial Monitor (0.5° per press) until it is level; the setting is saved on the device.",
+      "The demo tray rolls 25° for a 35° clinical tilt (30° → 21°, 40° → 29°); this is expected.",
     ],
   },
   {

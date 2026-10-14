@@ -83,11 +83,11 @@ The MLX90614 reads skin *surface* temperature, normally a few °C below a thermo
 An MG996R rolls the bed's pillow tray on its long axis. This is the *Intervene* step: pressing **Apply** on a lateral-tilt recommendation (or accepting an escalation on the Evaluate card) tilts the bed, and the Controls card has manual **Left / Flat / Right** buttons.
 
 - `tilt:<deg>` takes the clinical angle, `+` = right side down, `0` = flat.
-- The demo tray only rolls ±20°, so it moves at half the clinical angle (30° → 15°, 40° → 20°). Change `TILT_SCALE` for a full-size bed.
+- The demo tray rolls 25° for a 35° clinical tilt (`TILT_SCALE` = 25/35: 30° → 21.4°, 40° → 28.6°), within a 30° travel limit. Use `TILT_SCALE` 1.0 for a full-size bed.
 - It moves at 5°/s and a completed tilt counts as a turn.
 - Wiring: signal → GPIO 13; V+ → a separate 5–6 V supply (≥ 3 A); GND → supply GND **and** ESP32 GND. Powering it from the ESP32 5V pin browns out the board and drops Bluetooth.
-- If it rolls the wrong way set `SERVO_INVERT 1`; if the tray isn't level at Flat, trim `SERVO_CENTER_US`.
-- Serial: `<` tilt left 30°, `>` tilt right 30°, `0` flat.
+- If it rolls the wrong way set `SERVO_INVERT 1`. If the tray isn't level at Flat, press Flat and use `[` / `]` in the Serial Monitor (0.5° per press, saved in flash). The default level point, `TILT_LEVEL_TRIM_DEG`, is the one measured on the Fab Lab bed.
+- Serial: `<` tilt left 30°, `>` tilt right 30°, `0` flat, `[` / `]` shift the level point.
 
 ## Simulator
 
