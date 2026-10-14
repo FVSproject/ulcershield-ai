@@ -74,6 +74,10 @@ Service UUID: `0000fd00-1212-efde-1523-785feabcd123`.
 
 The on-board LED blinks while the ESP32 waits for a browser and stays solid once paired. Don't pair it from the OS Bluetooth settings; the browser connects directly. Type `?` in the Serial Monitor (115200 baud) to print the BLE name, MAC, connected screens and sensor status. Up to 3 browsers can stay connected at once.
 
+### Skin temperature calibration
+
+The MLX90614 reads skin *surface* temperature, normally a few °C below a thermometer. To match a thermometer: hold the sensor flat on the skin for about a minute, take a thermometer reading at the same moment, and enter it under **Calibration & controls → Temperature calibration** (or send `temp_ref:36.8`). The ESP32 stores the offset in flash, so it survives reboots; `temp_ref:clear` removes it. Recalibrate if the sensor moves to another body site.
+
 ### Bed tilt servo (demo bed v2)
 
 An MG996R rolls the bed's pillow tray on its long axis. This is the *Intervene* step: pressing **Apply** on a lateral-tilt recommendation (or accepting an escalation on the Evaluate card) tilts the bed, and the Controls card has manual **Left / Flat / Right** buttons.

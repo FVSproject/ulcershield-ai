@@ -1,10 +1,20 @@
 /*
  * ============================================================================
- *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5.2
+ *  UlcerShield AI  -  Bedsore Early Prediction  -  ESP32 BLE Peripheral  v5.3
  *  نظام التنبؤ المبكر بقرحة الفراش
  * ============================================================================
  *  Pairs with the web platform (https://ulcershield-ai.vercel.app) over
  *  Web Bluetooth. No WiFi, no app: the browser connects straight to the ESP32.
+ *
+ *  v5.3 -- skin temperature
+ *    - The MLX90614 measures SKIN temperature, normally 30-35 C, which is
+ *      below core body temperature. Command "temp_ref:<C>" calibrates it
+ *      against a thermometer read at the same moment; the offset is stored
+ *      in flash (NVS) and survives reboots. "temp_ref:clear" removes it.
+ *    - Read every 0.5 s, reported as the median of the last 5 reads.
+ *    - A failed read used to leave the last value on screen forever; after
+ *      3 s of failures "b" is now null, and the sensor is re-probed.
+ *    - State packets carry "bo" (calibration offset, C).
  *
  *  v5.2 -- bed tilt servo (demo bed v2)
  *    - MG996R on GPIO 13 rolls the pillow tray on its long axis. This is the
@@ -33,7 +43,8 @@
  *  GATT layout (must match platform/src/lib/sources/ble-source.ts):
  *    Service   0000fd00-1212-efde-1523-785feabcd123
  *      Notify  0000fd01-...abcd123   state packets (JSON, 1 Hz)
- *      Write   0000fd02-...abcd123   commands (ASCII: cal_zero|cal_a|cal_b|reset|tilt:<deg>)
+ *      Write   0000fd02-...abcd123   commands (ASCII: cal_zero|cal_a|cal_b|reset|
+ *                                              tilt:<deg>|temp_ref:<C>|temp_ref:clear)
  *      Notify  0000fd03-...abcd123   event packets (JSON)
  *
  *  State packet:
@@ -41,7 +52,7 @@
  *   "l":[n,mmhg,g,peak,sat,loaded],
  *   "r":[n,mmhg,g,peak,sat,loaded],
  *   "c":<cop>, "t":<turns>, "st":<since_turn_min>,
- *   "b":<body_c|null>, "h":<humidity|null>, "occ":0|1,
+ *   "b":<body_c|null>, "bo":<temp_offset_c>, "h":<humidity|null>, "occ":0|1,
  *   "tl":<tilt>, "tt":<tilt_target>, "tb":<tray_deg>}   (tilt fields only with a servo)
  *
  *  Event packet:  {"k":"turn|calibration|reset|alert|connect","x":"<text>","u":<s>}
@@ -77,6 +88,7 @@
 #include <Wire.h>
 #include <DHT.h>
 #include <Adafruit_MLX90614.h>
+#include <Preferences.h>
 #include <NimBLEDevice.h>
 #if defined(CONFIG_NIMBLE_CPP_IDF)
 #  include "host/ble_gatt.h"
@@ -87,7 +99,7 @@
 // ==========================================================================
 //  Device identity + BLE UUIDs
 // ==========================================================================
-#define FW_VERSION        "5.2"
+#define FW_VERSION        "5.3"
 // One name per bed. Keep the "UlcerShield" prefix: the browser filters on it.
 // Max 29 characters (scan response limit).
 #define US_DEVICE_NAME    "UlcerShield-01"
@@ -156,6 +168,15 @@ const uint32_t BOOT_GRACE_MS   = 15000;
 const uint32_t T_FAST_MS       = 1000;
 const uint32_t T_NOTIFY_MS     = 1000;
 const uint32_t T_DHT_MS        = 2500;
+const uint32_t T_MLX_MS        = 500;
+const uint32_t T_MLX_RETRY_MS  = 5000;    // re-probe a missing MLX90614 this often
+
+// Skin temperature (MLX90614)
+const int   MLX_MEDIAN_N      = 5;        // report the median of the last 5 reads (2.5 s)
+const int   MLX_FAIL_LIMIT    = 6;        // 3 s of failed reads -> report no data
+const float TEMP_REF_MIN_C    = 30.0f;    // accepted thermometer reference range
+const float TEMP_REF_MAX_C    = 43.0f;
+const float TEMP_OFFSET_MAX_C = 10.0f;    // larger means the sensor isn't on skin
 
 // ==========================================================================
 //  Sensor state (unchanged)
@@ -188,6 +209,13 @@ float humidity = NAN, ambientT = NAN, skinT = NAN, mlxAmbientT = NAN;
 bool  mlxOK = false, dhtOK = false;
 float baselineSkinT = NAN;
 
+// skinT = skinRawT + tempOffsetC; the offset comes from a thermometer reference.
+float    skinRawT = NAN, tempOffsetC = 0;
+float    mlxBuf[MLX_MEDIAN_N];
+int      mlxCount = 0, mlxIdx = 0, mlxFails = 0;
+uint32_t tMlx = 0, tMlxRetry = 0;
+Preferences prefs;
+
 float cop = 0, copRef = 0, copCandidate = 0;
 bool  copPending = false;
 uint32_t copPendingSince = 0;
@@ -216,6 +244,7 @@ volatile bool helloPending = false;  // a browser subscribed to events
 volatile bool statePending = false;  // a browser subscribed to state
 volatile bool  tiltPending   = false; // "tilt:<deg>" received
 volatile float tiltPendingDeg = 0;    // clinical degrees, + = right side down
+volatile float pendingTempRefC = NAN; // with pendingCmd 't'; NAN = clear the calibration
 
 bool registerTurn(const char* reason);
 void broadcastState();
@@ -367,6 +396,75 @@ bool massCalibration(Zone &z) {
   return true;
 }
 
+// ==========================================================================
+//  Skin temperature (MLX90614)
+// ==========================================================================
+static float medianOf(const float* v, int n) {
+  float s[MLX_MEDIAN_N];
+  for (int i = 0; i < n; i++) {                 // insertion sort, n <= 5
+    float x = v[i]; int j = i;
+    while (j > 0 && s[j - 1] > x) { s[j] = s[j - 1]; j--; }
+    s[j] = x;
+  }
+  return (n % 2) ? s[n / 2] : 0.5f * (s[n / 2 - 1] + s[n / 2]);
+}
+
+void readSkinTemp() {
+  if (!mlxOK) return;
+  float o = mlx.readObjectTempC();
+  // A failed I2C read comes back as -273.15 C. Drop it, and after a few in a
+  // row stop reporting rather than leaving the last good value on screen.
+  if (isnan(o) || o < -20 || o > 120) {
+    if (++mlxFails >= MLX_FAIL_LIMIT) {
+      skinRawT = skinT = NAN;
+      mlxCount = 0;
+      mlxOK = false;           // loop() re-probes it every T_MLX_RETRY_MS
+      Serial.println(F("[WARN] MLX90614 not responding"));
+    }
+    return;
+  }
+  mlxFails = 0;
+  mlxAmbientT = mlx.readAmbientTempC();
+  mlxBuf[mlxIdx] = o;
+  mlxIdx = (mlxIdx + 1) % MLX_MEDIAN_N;
+  if (mlxCount < MLX_MEDIAN_N) mlxCount++;
+  skinRawT = medianOf(mlxBuf, mlxCount);
+  skinT = skinRawT + tempOffsetC;
+}
+
+void saveTempOffset() {
+  prefs.begin("ulcershield", false);
+  prefs.putFloat("tOff", tempOffsetC);
+  prefs.end();
+  skinT = isnan(skinRawT) ? NAN : skinRawT + tempOffsetC;
+}
+
+// `refC` is a thermometer reading taken at the same moment; NAN clears.
+void calibrateTemp(float refC) {
+  char msg[96];
+  if (isnan(refC)) {
+    tempOffsetC = 0;
+    saveTempOffset();
+    broadcastEvent("calibration", "temperature calibration cleared");
+    return;
+  }
+  if (isnan(skinRawT)) {
+    broadcastEvent("alert", "temperature calibration failed: no skin temperature reading");
+    return;
+  }
+  float off = refC - skinRawT;
+  if (fabsf(off) > TEMP_OFFSET_MAX_C) {
+    snprintf(msg, sizeof(msg), "temperature calibration refused: sensor reads %.1f C, is it on the skin?", skinRawT);
+    broadcastEvent("alert", msg);
+    return;
+  }
+  tempOffsetC = off;
+  saveTempOffset();
+  Serial.printf("[TEMP] raw %.2f C, reference %.2f C -> offset %+.2f C\r\n", skinRawT, refC, off);
+  snprintf(msg, sizeof(msg), "temperature calibrated to %.1f C (offset %+.1f C)", refC, off);
+  broadcastEvent("calibration", msg);
+}
+
 // Runs in loop() so the BLE host task is never blocked by the calibration delays.
 void runPendingCommand() {
   char cmd = pendingCmd;
@@ -388,6 +486,9 @@ void runPendingCommand() {
     case 'r':
       resetCounters();
       broadcastEvent("reset", "counters reset");
+      break;
+    case 't':
+      calibrateTemp(pendingTempRefC);
       break;
   }
 }
@@ -470,21 +571,33 @@ class ServerCB : public NimBLEServerCallbacks {
   }
 };
 
+// Parses the number after a "name:" prefix; false unless the rest is one finite number.
+static bool parseArg(const std::string& v, size_t prefixLen, float& out) {
+  const char* num = v.c_str() + prefixLen;
+  char* end = nullptr;
+  out = strtof(num, &end);
+  return end != num && *end == '\0' && isfinite(out);
+}
+
 class CmdCB : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic* c, NimBLEConnInfo& info) override {
     std::string v = c->getValue();
     while (!v.empty() && isspace((unsigned char)v.back())) v.pop_back();
     Serial.printf("[BLE] cmd: %s\r\n", v.c_str());
+    float arg;
     if      (v == "cal_zero") pendingCmd = 'z';
     else if (v == "cal_a")    pendingCmd = 'a';
     else if (v == "cal_b")    pendingCmd = 'b';
     else if (v == "reset")    pendingCmd = 'r';
     else if (v.rfind("tilt:", 0) == 0) {
-      const char* num = v.c_str() + 5;
-      char* end = nullptr;
-      float deg = strtof(num, &end);
-      if (end != num && *end == '\0' && isfinite(deg)) { tiltPendingDeg = deg; tiltPending = true; }
+      if (parseArg(v, 5, arg)) { tiltPendingDeg = arg; tiltPending = true; }
       else Serial.println(F("[BLE] bad tilt command"));
+    }
+    else if (v == "temp_ref:clear") { pendingTempRefC = NAN; pendingCmd = 't'; }
+    else if (v.rfind("temp_ref:", 0) == 0) {
+      if (parseArg(v, 9, arg) && arg >= TEMP_REF_MIN_C && arg <= TEMP_REF_MAX_C) {
+        pendingTempRefC = arg; pendingCmd = 't';
+      } else Serial.println(F("[BLE] bad temp_ref command (30-43 C)"));
     }
     else Serial.println(F("[BLE] unknown command"));
   }
@@ -535,10 +648,10 @@ void broadcastState() {
   char buf[240];
   int n = snprintf(buf, sizeof(buf),
                    "{\"u\":%lu,\"l\":%s,\"r\":%s,\"c\":%.3f,\"t\":%lu,\"st\":%.1f,"
-                   "\"b\":%s,\"h\":%s,\"occ\":%d%s}",
+                   "\"b\":%s,\"bo\":%.1f,\"h\":%s,\"occ\":%d%s}",
                    (unsigned long)((millis() - bootMs) / 1000), l, r, safeNum(cop),
                    (unsigned long)turnCount, (millis() - lastTurnMs) / 60000.0f,
-                   b, h, occupied ? 1 : 0, tilt);
+                   b, tempOffsetC, h, occupied ? 1 : 0, tilt);
   if (n <= 0 || n >= (int)sizeof(buf)) return;
   stateChar->setValue((const uint8_t*)buf, n);
   stateChar->notify();
@@ -557,10 +670,10 @@ void broadcastEvent(const char* kind, const char* text) {
 
 // First thing a newly paired browser sees in its event timeline.
 void broadcastHello() {
-  char text[120];
-  snprintf(text, sizeof(text), "%s fw %s - skin temp %s, humidity %s - %u screen(s)",
+  char text[140];
+  snprintf(text, sizeof(text), "%s fw %s - skin temp %s (offset %+.1f C), humidity %s - %u screen(s)",
            US_DEVICE_NAME, FW_VERSION,
-           mlxOK ? "ok" : "MISSING", dhtOK ? "ok" : "MISSING",
+           mlxOK ? "ok" : "MISSING", tempOffsetC, dhtOK ? "ok" : "MISSING",
            bleServer ? bleServer->getConnectedCount() : 0);
   broadcastEvent("connect", text);
 }
@@ -585,6 +698,8 @@ void printStatus() {
                 (unsigned)CONFIG_BT_NIMBLE_MAX_CONNECTIONS);
   Serial.printf("  sensors  : MLX90614 %s, DHT22 %s\r\n",
                 mlxOK ? "ok" : "MISSING", dhtOK ? "ok" : "MISSING");
+  Serial.printf("  skin temp: raw %.2f C + offset %+.2f C = %.2f C  (MLX die %.1f C, room %.1f C)\r\n",
+                skinRawT, tempOffsetC, skinT, mlxAmbientT, ambientT);
   Serial.printf("  F = C / R^%.2f   C_A = %.0f   C_B = %.0f\r\n", FSR_N, fsrC_A, fsrC_B);
 #if SERVO_PIN >= 0
   Serial.printf("  bed tilt : tray %+.1f deg -> %+.1f (clinical target %+.0f), servo GPIO %d\r\n",
@@ -666,6 +781,10 @@ void setup() {
   Wire.begin(I2C_SDA, I2C_SCL);
   mlxOK = mlx.begin();
   Serial.println(mlxOK ? F("[OK]   MLX90614") : F("[FAIL] MLX90614"));
+  prefs.begin("ulcershield", true);
+  tempOffsetC = prefs.getFloat("tOff", 0.0f);
+  prefs.end();
+  Serial.printf("[OK]   skin temp offset %+.2f C\r\n", tempOffsetC);
   dhtOK = !isnan(dht.readHumidity());
   Serial.println(dhtOK ? F("[OK]   DHT22") : F("[WARN] DHT22"));
 
@@ -709,10 +828,13 @@ void loop() {
     float h = dht.readHumidity(), t = dht.readTemperature();
     if (!isnan(h) && !isnan(t)) { humidity = h; ambientT = t; dhtOK = true; }
     else dhtOK = false;
-    if (mlxOK) {
-      float o = mlx.readObjectTempC(), a = mlx.readAmbientTempC();
-      if (!isnan(o) && o > -20 && o < 120) { skinT = o; mlxAmbientT = a; }
-    }
+  }
+
+  if (now - tMlx >= T_MLX_MS) { tMlx = now; readSkinTemp(); }
+  if (!mlxOK && now - tMlxRetry >= T_MLX_RETRY_MS) {
+    tMlxRetry = now;
+    mlxOK = mlx.begin();
+    if (mlxOK) { mlxFails = 0; Serial.println(F("[OK]   MLX90614 found")); }
   }
 
   if (helloPending) { helloPending = false; broadcastHello(); }
