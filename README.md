@@ -89,6 +89,19 @@ An MG996R rolls the bed's pillow tray on its long axis. This is the *Intervene* 
 - If it rolls the wrong way set `SERVO_INVERT 1`. If the tray isn't level at Flat, press Flat and use `[` / `]` in the Serial Monitor (0.5° per press, saved in flash). The default level point, `TILT_LEVEL_TRIM_DEG`, is the one measured on the Fab Lab bed.
 - Serial: `<` tilt left 30°, `>` tilt right 30°, `0` flat, `[` / `]` shift the level point.
 
+## Bed camera — ESP32-CAM live feed
+
+`firmware/UlcerShieldCam/UlcerShieldCam.ino` streams the bed to the dashboard's **Live feed** card (Start / Stop camera, Record).
+
+1. Set `WIFI_SSID` / `WIFI_PASS` in the sketch. Board: **AI Thinker ESP32-CAM**. Power it from a 5 V / 2 A supply (weak USB power causes brownout resets).
+2. The Serial Monitor (115200) prints the camera address; it also answers at `http://ulcershield-cam.local`. Open that address in a browser to check the picture.
+3. On the dashboard, put the camera on the same Wi-Fi as the laptop/phone, press **Start camera**, and click **Allow** when Chrome asks to access devices on your local network.
+
+- Endpoints: port 80 `/status`, `/control?camera=on|off`, `/capture`; port 81 `/stream` (MJPEG). One live viewer at a time.
+- If the address can't be resolved, enter the IP under **Live feed → Camera address**. Chrome / Edge only.
+- If the camera can't join the Wi-Fi it starts an access point `UlcerShield-CAM` (password `ulcershield`, `192.168.4.1`).
+- Recording is simulated: it shows a REC timer and lists clips with a thumbnail, but stores no video.
+
 ## Simulator
 
 The platform ships with a synthetic sensor source that runs in the browser — no ESP32 required. Every authed page auto-starts it if no BLE device is paired.

@@ -726,6 +726,7 @@
   <li>مستشعر رطوبة <span class="num">DHT22</span> على <span class="num">GPIO 4</span> مع مقاومة سحب <span class="num">10 kΩ</span>.</li>
   <li>مستشعر حرارة <span class="num">MLX90614</span> بالأشعة تحت الحمراء عبر I²C (<span class="num">SDA = GPIO 21, SCL = GPIO 22</span>).</li>
   <li>سرير العرض v2: محرك إمالة <span class="num">MG996R</span>، إشارته على <span class="num">GPIO 13</span>، يُغذّى من مصدر مستقل <span class="num">5–6 V</span> (<span class="num">≥ 3 A</span>) مع توصيل أرضيّه بأرضي <span class="num">ESP32</span>. تميل الصينية <span class="num">25°</span> عند إمالة سريرية <span class="num">35°</span> (<span class="num">30° → 21°</span>، <span class="num">40° → 29°</span>). إذا لم تكن مستوية عند «مستوٍ»، اضغط <code>[</code> / <code>]</code> في الشاشة التسلسلية للضبط (يُحفظ في الجهاز). فيرموير <span class="num">v5.4</span> أو أحدث.</li>
+  <li>كاميرا السرير: <span class="num">ESP32-CAM</span> (AI Thinker) بفيرموير <code>firmware/UlcerShieldCam/UlcerShieldCam.ino</code>، على شبكة Wi-Fi نفسها التي يتصل بها جهاز العرض. من لوحة المتابعة: <strong>البث المباشر ← تشغيل الكاميرا</strong>، واضغط <strong>سماح</strong> عندما يطلب Chrome الوصول إلى الأجهزة على الشبكة المحلية. إذا لم يعمل <code>ulcershield-cam.local</code> فأدخل عنوان IP الظاهر في الشاشة التسلسلية للكاميرا في <strong>عنوان الكاميرا</strong>. التسجيل تجريبي (لا يُحفظ فيديو).</li>
 </ul>
 
 <h3>المكتبات المطلوبة (Arduino IDE)</h3>

@@ -712,6 +712,7 @@
   <li>DHT22 humidity sensor on GPIO 4 with a 10 kΩ pull-up.</li>
   <li>MLX90614 IR temperature sensor on I²C (SDA = GPIO 21, SCL = GPIO 22).</li>
   <li>Demo bed v2: MG996R tilt servo, signal on GPIO 13, powered from its own 5–6 V supply (≥ 3 A) with GND shared with the ESP32. The tray rolls 25° for a 35° clinical tilt (30° → 21°, 40° → 29°). If it isn't level at Flat, press <code>[</code> / <code>]</code> in the Serial Monitor to adjust (saved on the device). Firmware v5.4+.</li>
+  <li>Bed camera: ESP32-CAM (AI Thinker) running <code>firmware/UlcerShieldCam/UlcerShieldCam.ino</code>, on the same Wi-Fi as the viewing laptop/phone. On the dashboard, <strong>Live feed → Start camera</strong> shows the bed; click <strong>Allow</strong> when Chrome asks to access devices on your local network. If <code>ulcershield-cam.local</code> doesn&#39;t resolve, enter the IP from the camera&#39;s Serial Monitor under <strong>Camera address</strong>. Recording is simulated (no video is stored).</li>
 </ul>
 
 <h3>Required libraries (Arduino IDE)</h3>
