@@ -18,6 +18,7 @@ import { EventTimeline } from "@/components/dashboard/event-timeline";
 import { Controls } from "@/components/dashboard/controls";
 import { AiPanel } from "@/components/dashboard/ai-panel";
 import { ConnectionBadge } from "@/components/dashboard/connection-badge";
+import { LiveFeed } from "@/components/dashboard/live-feed";
 import { useT } from "@/lib/i18n";
 
 export default function DashboardPage() {
@@ -50,6 +51,8 @@ export default function DashboardPage() {
           </div>
 
           <EvaluateCard />
+
+          <LiveFeed />
 
           <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
             <RiskTrajectory />

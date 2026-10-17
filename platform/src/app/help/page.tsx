@@ -102,6 +102,27 @@ const ISSUES: Issue[] = [
     ],
   },
   {
+    category: "device",
+    code: "CAM-01",
+    title: "Live feed won't start",
+    symptoms:
+      "Start camera on the dashboard stays on 'Connecting…', or shows 'Can't reach the camera' or 'Local network access is blocked'.",
+    causes: [
+      "The ESP32-CAM and this laptop/phone are on different Wi-Fi networks (or the camera fell back to its own 'UlcerShield-CAM' access point).",
+      "Chrome's 'access devices on your local network' prompt was dismissed or blocked.",
+      "This device can't resolve ulcershield-cam.local (common on some Android phones).",
+      "Another screen is already watching — the camera streams to one screen at a time.",
+      "The ESP32-CAM is browning out on a weak USB supply.",
+    ],
+    fix: [
+      "Put WIFI_SSID / WIFI_PASS in firmware/UlcerShieldCam/UlcerShieldCam.ino, flash it, and check the Serial Monitor (115200) shows 'camera address: …'.",
+      "Enter that IP address under Live feed → Camera address if ulcershield-cam.local doesn't work.",
+      "When Chrome asks to access devices on your local network, click Allow. If you blocked it: icon left of the address bar → Site settings → Local network access → Allow, then reload.",
+      "Close the live feed on other screens, then press Start camera again.",
+      "Power the ESP32-CAM from a 5 V / 2 A supply. Use Chrome or Edge; Safari and Firefox are not supported.",
+    ],
+  },
+  {
     category: "sensor",
     code: "SENS-03",
     title: "Temperature reads lower than a thermometer",
